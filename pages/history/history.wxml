@@ -1,39 +1,36 @@
-<!-- 白云洞登山局 - 历史记录 V1.0 -->
-
-<view class="container">
-  <!-- 标题 -->
-  <view class="header">
-    <view class="back-btn" bindtap="handleBack">←</view>
-    <text class="title">历史轨迹</text>
+<!--
+  历史记录列表页
+-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading-tip" wx:if="{{loading}}">
+    <text class="text-l3">加载中...</text>
   </view>
 
-  <!-- 历史列表 -->
-  <scroll-view scroll-y class="history-list">
-    <block wx:if="{{loading}}">
-      <view class="loading">加载中...</view>
-    </block>
-    <block wx:elif="{{list.length === 0}}">
-      <view class="empty">
-        <text>暂无攀登记录</text>
-        <text class="empty-hint">去登山吧！</text>
+  <!-- 空态 -->
+  <view class="empty-tip" wx:if="{{empty && !loading}}">
+    <text class="empty-icon">🏔</text>
+    <text class="text-l3">还没有攀登记录</text>
+    <text class="text-l3" style="margin-top: 8rpx;">去攀登页开始你的第一次挑战吧</text>
+  </view>
+
+  <!-- 记录列表 -->
+  <view
+    wx:for="{{list}}"
+    wx:key="_id"
+    class="record-card glass-card"
+    data-id="{{item._id}}"
+    bindtap="goDetail"
+  >
+    <view class="record-header">
+      <text class="record-date">{{item.dateText}}</text>
+      <view class="record-status {{item.status === 'COMPLETED' ? 'completed' : item.status === 'SUSPECT' ? 'suspect' : 'running'}}">
+        <text>{{item.statusText}}</text>
       </view>
-    </block>
-    <block wx:else>
-      <navigator 
-        url="/pages/recordDetail/recordDetail?id={{item._id}}" 
-        class="history-item"
-        wx:for="{{list}}" 
-        wx:key="_id"
-      >
-        <view class="item-left">
-          <text class="item-date">{{item.formattedDate}}</text>
-          <text class="item-status {{item.status}}">{{item.statusText}}</text>
-        </view>
-        <view class="item-right">
-          <text class="item-duration">{{item.formattedDuration}}</text>
-          <text class="item-arrow">→</text>
-        </view>
-      </navigator>
-    </block>
-  </scroll-view>
+    </view>
+    <view class="record-body">
+      <text class="record-duration text-l1">{{item.durationText}}</text>
+      <text class="record-badge" wx:if="{{item.badge}}">{{item.badge}}</text>
+    </view>
+  </view>
 </view>

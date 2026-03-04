@@ -1,23 +1,9 @@
 [
   {
-    "nickname": "Jimmie Ting",
+    "nickname": "Jimmie",
     "contribution_type": "EARLY_ADOPTER",
     "honor_level": 10,
     "is_visible": true,
-    "note": "发起人/首席架构师"
-  },
-  {
-    "nickname": "OpenClaw AI",
-    "contribution_type": "TECH_SUPPORT",
-    "honor_level": 5,
-    "is_visible": true,
-    "note": "技术共建者"
-  },
-  {
-    "nickname": "佚名",
-    "contribution_type": "DONATION",
-    "honor_level": 1,
-    "is_visible": true,
-    "note": "早期支持者"
+    "note": "项目发起人"
   }
 ]

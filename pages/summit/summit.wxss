@@ -1,0 +1,106 @@
+/**
+ * 巅峰页样式
+ */
+
+.page {
+  min-height: 100vh;
+  padding: 0 32rpx;
+}
+
+.page-title {
+  display: block;
+  text-align: center;
+  padding: 24rpx 0 32rpx;
+}
+
+/* ========== 三段式切换 ========== */
+.segment-control {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 16rpx;
+  padding: 6rpx;
+  margin-bottom: 32rpx;
+}
+
+.segment-item {
+  flex: 1;
+  text-align: center;
+  padding: 16rpx 0;
+  font-size: 26rpx;
+  color: var(--color-muted);
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.segment-item.active {
+  background: rgba(211, 73, 65, 0.2);
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+/* ========== 排行列表 ========== */
+.rank-list {
+  height: calc(100vh - 400rpx);
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  padding: 24rpx;
+  margin-bottom: 16rpx;
+}
+
+.rank-num {
+  width: 80rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.medal {
+  font-size: 48rpx;
+}
+
+.rank-index {
+  font-size: 32rpx;
+  font-weight: 600;
+}
+
+.rank-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 16rpx;
+}
+
+.rank-name {
+  font-size: 30rpx;
+  color: var(--color-ivory);
+  font-weight: 500;
+}
+
+.rank-date {
+  margin-top: 4rpx;
+}
+
+.rank-time {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: var(--color-ivory);
+  letter-spacing: 2rpx;
+}
+
+/* ========== 空态 ========== */
+.loading-tip,
+.empty-tip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 120rpx 0;
+}
+
+.empty-icon {
+  font-size: 80rpx;
+  margin-bottom: 24rpx;
+  opacity: 0.5;
+}

@@ -1,0 +1,170 @@
+/**
+ * 攀登页样式
+ */
+
+.page {
+  min-height: 100vh;
+  padding: 0 32rpx;
+}
+
+/* ========== 环境层 ========== */
+.ambient-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx 0;
+}
+
+.date-text {
+  font-size: 28rpx;
+  color: var(--color-muted);
+}
+
+.weather-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.weather-icon {
+  font-size: 32rpx;
+}
+
+.weather-temp {
+  font-size: 28rpx;
+  color: var(--color-muted);
+}
+
+/* ========== 地理状态条 ========== */
+.geo-bar {
+  text-align: center;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  margin-bottom: 40rpx;
+  transition: all 0.3s ease;
+}
+
+.geo-bar.far {
+  background: rgba(136, 153, 166, 0.15);
+}
+
+.geo-bar.far .geo-text {
+  color: var(--color-muted);
+}
+
+.geo-bar.near {
+  background: rgba(242, 242, 242, 0.1);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.geo-bar.near .geo-text {
+  color: var(--color-ivory);
+}
+
+.geo-bar.inside {
+  background: rgba(211, 73, 65, 0.2);
+}
+
+.geo-bar.inside .geo-text {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+
+.geo-text {
+  font-size: 26rpx;
+}
+
+/* ========== 核心区域 ========== */
+.core-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+}
+
+/* 数据卡片 */
+.stats-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 48rpx;
+  width: 100%;
+  margin-bottom: 60rpx;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-divider {
+  width: 1rpx;
+  height: 80rpx;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* 计时显示 */
+.timer-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 60rpx;
+}
+
+.elapsed-text {
+  letter-spacing: 8rpx;
+}
+
+.elapsed-label {
+  margin-top: 12rpx;
+}
+
+/* ========== C 位大圆按钮 ========== */
+.button-area {
+  margin: 40rpx 0;
+}
+
+.peak-button {
+  width: 220rpx;
+  height: 220rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #D34941 0%, #E67E22 100%);
+  box-shadow: 0 15rpx 30rpx rgba(211, 73, 65, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease, opacity 0.3s ease;
+}
+
+.peak-button:active {
+  transform: scale(0.95);
+}
+
+.peak-button.disabled {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+.button-text {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #F2F2F2;
+  letter-spacing: 4rpx;
+}
+
+/* ========== 历史背书 ========== */
+.history-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+  margin-top: 40rpx;
+}
+
+.history-link {
+  font-size: 26rpx;
+  color: var(--color-accent);
+  opacity: 0.8;
+}

@@ -1,0 +1,52 @@
+<!--
+  记录详情页
+  成绩 + 数据卡片 + 海拔折线 + 操作按钮
+-->
+<view class="page">
+  <!-- 加载中 -->
+  <view class="loading-tip" wx:if="{{loading}}">
+    <text class="text-l3">加载中...</text>
+  </view>
+
+  <view wx:if="{{!loading}}">
+    <!-- 成绩大字 -->
+    <view class="result-hero">
+      <text class="duration text-l1">{{durationText}}</text>
+      <view class="badge-row" wx:if="{{badge}}">
+        <text class="badge-text">{{badge}}</text>
+        <text class="pb-tag" wx:if="{{isPB}}">新 PB!</text>
+      </view>
+    </view>
+
+    <!-- 数据卡片 -->
+    <view class="glass-card data-card">
+      <view class="data-row">
+        <text class="data-label text-l3">日期</text>
+        <text class="data-value">{{dateText}}</text>
+      </view>
+      <view class="data-row">
+        <text class="data-label text-l3">海拔爬升</text>
+        <text class="data-value">{{altitudeDelta}} 米</text>
+      </view>
+      <view class="data-row">
+        <text class="data-label text-l3">垂直配速</text>
+        <text class="data-value">{{paceText}} 米/时</text>
+      </view>
+    </view>
+
+    <!-- 海拔折线图区域（Phase 4 实现） -->
+    <view class="chart-placeholder glass-card">
+      <text class="text-l3">海拔折线图</text>
+    </view>
+
+    <!-- 操作按钮 -->
+    <view class="action-group">
+      <view class="action-btn primary" bindtap="generatePoster">
+        <text>生成荣誉海报</text>
+      </view>
+      <view class="action-btn secondary" bindtap="goHome">
+        <text>返回首页</text>
+      </view>
+    </view>
+  </view>
+</view>

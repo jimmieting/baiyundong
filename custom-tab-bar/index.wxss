@@ -1,102 +1,91 @@
-/* 自定义底部导航栏 V1.0 */
+/**
+ * 自定义 TabBar 样式
+ * C 位大圆悬浮设计
+ */
 
 .tab-bar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: #003344;
-  z-index: 10;
+  height: 120rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  background: linear-gradient(180deg, rgba(0, 26, 36, 0.95) 0%, rgba(0, 51, 68, 0.98) 100%);
+  border-top: 1rpx solid rgba(255, 255, 255, 0.06);
+  z-index: 999;
   transition: opacity 0.3s ease;
 }
 
 .tab-bar.dimmed {
   opacity: 0.3;
+  pointer-events: none;
 }
 
-.tab-bar-border {
-  height: 1rpx;
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.tab-bar-items {
-  display: flex;
-  height: 100rpx;
-  padding-bottom: env(safe-area-inset-bottom);
-  position: relative;
-}
-
-.tab-bar-item {
+/* 普通标签项 */
+.tab-item {
   flex: 1;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: center;
-  z-index: 11;
-}
-
-/* 侧边标签 - 行内布局 */
-.tab-icon-row {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
+  padding: 12rpx 0 16rpx;
 }
 
 .tab-icon {
-  font-size: 28rpx;
+  font-size: 40rpx;
+  margin-bottom: 4rpx;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+.tab-icon.active {
+  opacity: 1;
 }
 
 .tab-text {
   font-size: 22rpx;
   color: #8899A6;
+  transition: color 0.3s ease;
 }
 
-.tab-bar-item.active .tab-text {
+.tab-text.active {
   color: #D34941;
-  font-weight: 500;
 }
 
-/* 中间C位按钮 - 悬浮感 */
-.tab-center {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
+/* C 位大圆按钮 */
+.tab-item.center {
+  position: relative;
+  margin-top: -60rpx;
 }
 
 .center-button {
-  width: 180rpx;
-  height: 180rpx;
+  width: 100rpx;
+  height: 100rpx;
   border-radius: 50%;
-  /* 黛青渐变 */
-  background: linear-gradient(135deg, #004E64 0%, #003344 100%);
-  /* 外发光阴影 */
-  box-shadow: 0 10rpx 30rpx rgba(0, 78, 100, 0.6);
+  background: linear-gradient(135deg, #D34941 0%, #E67E22 100%);
   display: flex;
-  justify-content: center;
   align-items: center;
-  /* 向上偏移产生悬浮感 */
-  margin-top: -60rpx;
-  transition: transform 0.2s ease;
+  justify-content: center;
+  box-shadow: 0 8rpx 24rpx rgba(211, 73, 65, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.center-button.active {
+  box-shadow: 0 12rpx 32rpx rgba(211, 73, 65, 0.6);
 }
 
 .center-button:active {
-  transform: scale(0.95);
-}
-
-/* C位按钮内部 - column布局 */
-.center-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8rpx;
+  transform: scale(0.92);
 }
 
 .center-icon {
-  font-size: 60rpx;
+  font-size: 36rpx;
+  color: #F2F2F2;
 }
 
-.center-label {
-  font-size: 32rpx;
-  font-weight: bold;
-  color: #F2F2F2;
+.center-text {
+  margin-top: 4rpx;
 }

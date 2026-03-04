@@ -1,102 +1,139 @@
-/* 白云洞登山局 - 全局样式 V1.0 */
-/* 核心色盘 */
+/**
+ * 白云洞登山局 - 全局样式
+ * 视觉原子规范 V1.7
+ */
+
+/* ========== CSS 变量（色盘） ========== */
 page {
-  /* 黛青背景 - 凌晨山间 */
+  --color-deep: #003344;
+  --color-deep-top: #001A24;
+  --color-accent: #D34941;
+  --color-accent-orange: #E67E22;
+  --color-ivory: #F2F2F2;
+  --color-muted: #8899A6;
+  --color-warning: #FF4D4F;
+  --color-glass-bg: rgba(255, 255, 255, 0.08);
+  --color-glass-border: rgba(255, 255, 255, 0.1);
+  --color-glass-overlay: rgba(0, 51, 68, 0.75);
+
+  /* 全局背景 */
   background: linear-gradient(180deg, #001A24 0%, #003344 100%);
-  background-color: #003344;
   min-height: 100vh;
+  color: var(--color-ivory);
   font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
-  color: #F2F2F2;
-  box-sizing: border-box;
 }
 
-/* 全局容器 - 安全边距 */
-.container {
-  padding: 24rpx 40rpx; /* 左右40rpx安全边距 */
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding-bottom: 200rpx; /* 为底部导航留空间 */
-}
+/* ========== 字体层级 ========== */
 
-/* 字体层级 */
+/* L1 成绩大字 */
 .text-l1 {
   font-size: 84rpx;
   font-weight: 700;
-  color: #F2F2F2;
+  color: var(--color-ivory);
+  line-height: 1.1;
 }
 
+/* L2 页面标题 */
 .text-l2 {
   font-size: 36rpx;
   font-weight: 500;
   letter-spacing: 4rpx;
-  color: #F2F2F2;
+  color: var(--color-ivory);
 }
 
+/* L3 正文/数据 */
 .text-l3 {
   font-size: 28rpx;
-  color: #8899A6;
+  color: var(--color-muted);
 }
 
+/* L4 启动页微文案 */
 .text-l4 {
   font-size: 32rpx;
   font-style: italic;
-  color: #F2F2F2;
+  color: var(--color-ivory);
+  line-height: 1.6;
 }
 
-/* 毛玻璃卡片 */
+/* ========== 毛玻璃卡片 ========== */
 .glass-card {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--color-glass-bg);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border: 1rpx solid var(--color-glass-border);
   border-radius: 24rpx;
-  padding: 24rpx;
-  width: 100%;
-  box-sizing: border-box;
+  padding: 32rpx;
 }
 
-/* 功能色 */
-.accent-red {
-  color: #D34941;
-}
-
-.muted-gray {
-  color: #8899A6;
-}
-
-.warning-red {
-  color: #FF4D4F;
-}
-
-/* 按钮禁用态 */
-.btn-disabled {
-  opacity: 0.4;
-  filter: grayscale(100%);
-}
-
-/* 居中flex */
+/* ========== 工具类 ========== */
 .flex-center {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
 
 .flex-column {
   display: flex;
   flex-direction: column;
-  align-items: center;
 }
+
+.flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.accent-text {
+  color: var(--color-accent);
+}
+
+.muted-text {
+  color: var(--color-muted);
+}
+
+.ivory-text {
+  color: var(--color-ivory);
+}
+
+/* ========== 动画 ========== */
 
 /* 呼吸灯效果 */
 @keyframes breathe {
-  0%, 100% { 
-    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.3);
+  0%, 100% {
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.1);
   }
-  50% { 
-    box-shadow: 0 0 30rpx rgba(242, 242, 242, 0.6);
+  50% {
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.3);
   }
 }
 
 .breathing {
   animation: breathe 2s ease-in-out infinite;
+}
+
+/* 淡入 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 淡出 */
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+/* 脉冲缩放 */
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* ========== 安全区域 ========== */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
 }

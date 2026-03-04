@@ -1,44 +1,74 @@
 [
   {
     "type": "SPLASH",
-    "content": "朱熹曾于此见'天路'，你今日所行亦然。",
+    "content": "朱熹曾于此见"天路"，你今日所行亦然。",
     "priority": 10,
-    "note": "核心品牌语"
+    "is_active": true
   },
   {
     "type": "SPLASH",
-    "content": "向上的秩序，是与自己博弈。",
+    "content": "每一步向上，都是与自己的博弈。",
+    "priority": 10,
+    "is_active": true
+  },
+  {
+    "type": "SPLASH",
+    "content": "秩序不在山顶等你，秩序在你脚下生长。",
+    "priority": 10,
+    "is_active": true
+  },
+  {
+    "type": "SPLASH",
+    "content": "凌晨的白云洞，只属于向上的人。",
     "priority": 8,
-    "note": "长期主义逻辑"
+    "is_active": true
   },
   {
     "type": "SPLASH",
-    "content": "汗水无欺，数据确权。",
-    "priority": 5,
-    "note": "技术公理"
+    "content": "没有捷径，只有节奏。",
+    "priority": 10,
+    "is_active": true
   },
   {
     "type": "SPLASH",
-    "content": "每一级石阶，都是通往巅峰的秩序。",
-    "priority": 5,
-    "note": "视觉锚点"
+    "content": "山不言语，但记录一切。",
+    "priority": 8,
+    "is_active": true
   },
   {
     "type": "SPLASH",
-    "content": "白云洞不仅是一座山，更是一次秩序的重建。",
-    "priority": 5,
-    "note": "战略视角"
+    "content": "向上的秩序，从第一步开始。",
+    "priority": 10,
+    "is_active": true
+  },
+  {
+    "type": "SPLASH",
+    "content": "天路漫漫，心志为灯。",
+    "priority": 8,
+    "is_active": true
   },
   {
     "type": "HISTORY",
-    "content": "白云洞位于福州鼓山系，是福州最具挑战性的登山路线之一。海拔约700米，累计爬升280m。自古为文人墨客修行之地。",
+    "content": "白云洞位于福州鼓山半山腰，海拔约400米。南宋理学家朱熹曾在此讲学，题写"天路"二字。",
     "priority": 10,
-    "note": "地理概况"
+    "is_active": true
   },
   {
     "type": "HISTORY",
-    "content": "南宋大儒朱熹曾游历于此，留下'天路'之说。其石阶陡峭，如同通往云端的阶梯，故名天路。",
+    "content": "从埠兴村登山口到白云洞主洞平台，直线距离约1.8公里，垂直爬升约280米，是福州最经典的登山快线之一。",
     "priority": 10,
-    "note": "朱熹天路"
+    "is_active": true
+  },
+  {
+    "type": "CARD",
+    "content": "朱熹曾于鼓山白云洞题"天路"二字，意指通往精神高处的道路。",
+    "priority": 10,
+    "is_active": true
+  },
+  {
+    "type": "CARD",
+    "content": "白云洞海拔约400米，从埠兴村登山口出发，垂直爬升约280米。",
+    "priority": 10,
+    "is_active": true
   }
 ]

@@ -1,0 +1,15 @@
+<!--
+  启动页：黛青全屏 + 品牌名 + 随机文案
+-->
+<view class="splash {{fadeOut ? 'fade-out' : ''}}">
+  <view class="splash-content">
+    <!-- 品牌名 -->
+    <text class="brand-title">白云洞登山局</text>
+    <view class="brand-divider"></view>
+    <!-- 随机文案 -->
+    <text class="quote">{{quote}}</text>
+  </view>
+
+  <!-- 底部标语 -->
+  <text class="slogan">向上的秩序</text>
+</view>

@@ -1,0 +1,58 @@
+<!--
+  巅峰页 - 排行榜
+-->
+<view class="page">
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 页面标题 -->
+  <text class="page-title text-l2">巅峰</text>
+
+  <!-- 三段式切换 -->
+  <view class="segment-control">
+    <view
+      wx:for="{{tabs}}"
+      wx:key="index"
+      class="segment-item {{activeTab === index ? 'active' : ''}}"
+      data-index="{{index}}"
+      bindtap="switchTab"
+    >
+      <text>{{item}}</text>
+    </view>
+  </view>
+
+  <!-- 排行列表 -->
+  <scroll-view class="rank-list" scroll-y>
+    <!-- 加载中 -->
+    <view class="loading-tip" wx:if="{{loading}}">
+      <text class="text-l3">加载中...</text>
+    </view>
+
+    <!-- 空态 -->
+    <view class="empty-tip" wx:if="{{empty && !loading}}">
+      <text class="empty-icon">⛰</text>
+      <text class="text-l3">暂无挑战记录</text>
+      <text class="text-l3" style="margin-top: 8rpx;">成为第一个登顶者吧</text>
+    </view>
+
+    <!-- 榜单条目 -->
+    <view
+      wx:for="{{list}}"
+      wx:key="_id"
+      class="rank-item glass-card"
+    >
+      <view class="rank-num">
+        <text wx:if="{{index === 0}}" class="medal">🥇</text>
+        <text wx:elif="{{index === 1}}" class="medal">🥈</text>
+        <text wx:elif="{{index === 2}}" class="medal">🥉</text>
+        <text wx:else class="rank-index text-l3">{{index + 1}}</text>
+      </view>
+      <view class="rank-info">
+        <text class="rank-name">{{item.nickname}}</text>
+        <text class="rank-date text-l3">{{item.dateText}}</text>
+      </view>
+      <text class="rank-time">{{item.durationText}}</text>
+    </view>
+  </scroll-view>
+
+  <view style="height: 180rpx;"></view>
+</view>

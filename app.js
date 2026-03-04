@@ -1,12 +1,16 @@
-// 白云洞登山局 - 主程序 V1.0
-// 核心哲学：向上的秩序 (Order Upwards)
+/**
+ * 白云洞登山局 - 主程序入口
+ * 核心哲学：向上的秩序 (Order Upwards)
+ */
 
 App({
-  // 物理锁死 - 地理围栏坐标
+  // ========== 全局常量 ==========
+
+  // 地理围栏配置（锁死项）
   GEOFENCE: {
     START: { lat: 26.070797, lng: 119.372559, name: '埠兴村登山口' },
     END: { lat: 26.075214, lng: 119.389145, name: '白云洞主洞平台' },
-    RADIUS_METERS: 50  // 50米强制围栏
+    RADIUS: 50 // 米
   },
 
   // 状态机定义
@@ -14,198 +18,114 @@ App({
     IDLE: 'IDLE',
     RUNNING: 'RUNNING',
     ARRIVED: 'ARRIVED',
-    COMPLETED: 'COMPLETED'
+    COMPLETED: 'COMPLETED',
+    SUSPECT: 'SUSPECT'
   },
 
-  // 有效时间区间（秒）
-  TIME_CONSTRAINTS: {
-    MIN: 15 * 60,   // 15分钟
-    MAX: 600 * 60   // 10小时
+  // 记录校验约束
+  VALIDATION: {
+    MIN_DURATION: 900,    // 15分钟（秒）
+    MAX_DURATION: 36000,  // 600分钟（秒）
+    ALT_EXPECTED: 280,    // 预期海拔增量（米）
+    ALT_TOLERANCE: 50,    // 海拔容差（米）
+    HARD_REJECT_DURATION: 600, // 10分钟，物理不可能区间（秒）
+    HARD_REJECT_SPEED: 1800    // 垂直配速上限（米/时）
   },
 
-  // 海拔校验（米）
-  ALTITUDE_DELTA: {
-    EXPECTED: 280,
-    TOLERANCE: 50  // 280m ± 50m
+  // 品牌色盘
+  COLORS: {
+    DEEP: '#003344',      // 黛青
+    ACCENT: '#D34941',    // 深赤
+    IVORY: '#F2F2F2',     // 象牙白
+    MUTED: '#8899A6',     // 次要灰
+    WARNING: '#FF4D4F'    // 高亮红
   },
 
-  // 开发测试模式
-  testMode: true,  // 设为true可跳过地理围栏校验
-
-  // 启动页文案
-  splashMessages: [
-    "朱熹曾于此见'天路'，你今日所行亦然。",
-    "向上的秩序，是与自己博弈。",
-    "每一步都是修行，每一秒都是见证。",
-    "山高人为峰，秩序心中立。",
-    "登顶不是目的，超越才是。",
-    "280米爬升，丈量的不只是距离。",
-    "凌晨的黛青色，是未露头的力量。",
-    "起点即终点，秩序即自由。"
+  // 启动页文案库（本地备用，优先从云端 t_culture 加载）
+  SPLASH_QUOTES: [
+    '朱熹曾于此见"天路"，你今日所行亦然。',
+    '每一步向上，都是与自己的博弈。',
+    '秩序不在山顶等你，秩序在你脚下生长。',
+    '凌晨的白云洞，只属于向上的人。',
+    '没有捷径，只有节奏。',
+    '山不言语，但记录一切。',
+    '向上的秩序，从第一步开始。',
+    '天路漫漫，心志为灯。'
   ],
 
+  // 测试模式（开发阶段为 true，上线前改为 false）
+  TEST_MODE: true,
+
+  // ========== 全局状态 ==========
   globalData: {
-    userInfo: null,
-    currentState: 'IDLE',
-    currentWorkout: null,
-    location: null,
-    distanceToStart: null,
-    distanceToEnd: null,
-    showSplash: true,  // 启动页默认显示
-    testMode: true  // 测试模式：默认关闭，上线前确保为false
+    openid: null,
+    userInfo: null,   // t_user 表中的用户数据
+    systemInfo: null
   },
+
+  // ========== 生命周期 ==========
 
   onLaunch() {
-    // ====== L1 优先级：启动页第一时间显示 ======
-    // 启动页由各页面onLoad时初始化，这里只设置全局状态
-    
     // 初始化云开发
-    if (wx.cloud) {
-      wx.cloud.init({
-        traceUser: true,
-        env: 'cloud1-5gbteglza5336c9b'
-      });
+    if (!wx.cloud) {
+      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
+      return;
     }
 
-    // 检查位置权限
-    this.checkLocationPermission();
-  },
-
-  // 检查位置权限
-  checkLocationPermission() {
-    wx.getSetting({
-      success: (res) => {
-        if (res.authSetting['scope.userLocation']) {
-          this.startBackgroundLocation();
-        } else {
-          // 未授权，引导用户授权
-          this.promptLocationAuth();
-        }
-      },
-      fail: () => {
-        this.promptLocationAuth();
-      }
+    wx.cloud.init({
+      env: 'cloud1-5gbteglza5336c9b',
+      traceUser: true
     });
-  },
 
-  // 提示用户授权定位 - 黛青风格弹窗
-  promptLocationAuth() {
-    wx.showModal({
-      title: '需要位置权限',
-      content: '攀登需要实时定位权限以确保证据链闭环。请点击"去设置"开启定位权限。',
-      confirmText: '去设置',
-      cancelText: '暂不',
-      confirmColor: '#D34941',
-      success: (res) => {
-        if (res.confirm) {
-          wx.openSetting({
-            success: (settingRes) => {
-              if (settingRes.authSetting['scope.userLocation']) {
-                this.startBackgroundLocation();
-              }
-            }
-          });
-        }
-      }
-    });
-  },
-
-  // 启动后台定位 - 完善fail回调
-  startBackgroundLocation() {
-    wx.startLocationUpdateBackground({
-      success: () => {
-        console.log('后台定位已启动');
-      },
-      fail: (err) => {
-        console.error('后台定位启动失败', err);
-        // 权限被拒绝时的UI反馈
-        if (err.errMsg && err.errMsg.includes('auth deny')) {
-          wx.showModal({
-            title: '定位权限被拒绝',
-            content: '攀登需要实时定位权限来检测您是否到达起点/终点。请在设置中开启定位权限。',
-            confirmText: '去设置',
-            confirmColor: '#D34941',
-            success: (res) => {
-              if (res.confirm) {
-                wx.openSetting();
-              }
-            }
-          });
-        } else {
-          wx.showToast({
-            title: '定位失败，请检查权限',
-            icon: 'none'
-          });
-        }
-      }
-    });
-  },
-
-  // 获取随机启动页文案
-  getRandomSplashMessage() {
-    const index = Math.floor(Math.random() * this.splashMessages.length);
-    return this.splashMessages[index];
-  },
-
-  // Haversine算法计算两点距离（米）
-  getDistance(lat1, lng1, lat2, lng2) {
-    const R = 6371000;
-    const dLat = this.toRad(lat2 - lat1);
-    const dLng = this.toRad(lng2 - lng1);
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-              Math.cos(this.toRad(lat1)) * Math.cos(this.toRad(lat2)) *
-              Math.sin(dLng / 2) * Math.sin(dLng / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c;
-  },
-
-  toRad(deg) {
-    return deg * Math.PI / 180;
-  },
-
-  // 检查是否在围栏内（支持测试模式绕过）
-  isInGeofence(lat, lng, target) {
-    if (this.globalData.testMode) {
-      return true; // 测试模式下跳过围栏校验
+    // 获取系统信息
+    try {
+      const systemInfo = wx.getSystemInfoSync();
+      this.globalData.systemInfo = systemInfo;
+    } catch (e) {
+      console.error('获取系统信息失败', e);
     }
-    const distance = this.getDistance(lat, lng, target.lat, target.lng);
-    return distance <= this.GEOFENCE.RADIUS_METERS;
+
+    // 获取 OpenID
+    this._initOpenId();
   },
 
-  // 云端任务重连 (Rehydration)
-  // 注意：t_workout 集合需要对 status 字段建立索引以优化查询性能
-  async reconnectWorkout() {
-    const db = wx.cloud.database();
-    const openid = await this.getOpenId();
-    
-    const result = await db.collection('t_workout').where({
-      _openid: openid,
-      status: 'RUNNING'
-    }).get();
+  // ========== 私有方法 ==========
 
-    if (result.data && result.data.length > 0) {
-      this.globalData.currentWorkout = result.data[0];
-      this.globalData.currentState = this.STATE.RUNNING;
-      return result.data[0];
-    }
-    return null;
-  },
+  /**
+   * 获取用户 OpenID
+   * 使用 Promise 封装，避免重复调用
+   */
+  _openIdPromise: null,
 
-  // 获取OpenID
   getOpenId() {
-    return new Promise((resolve, reject) => {
-      if (this.globalData.userInfo && this.globalData.userInfo._openid) {
-        resolve(this.globalData.userInfo._openid);
-        return;
-      }
-      
-      wx.cloud.callFunction({
-        name: 'getOpenId',
-        success: (res) => {
-          resolve(res.result.openid);
-        },
-        fail: reject
-      });
-    });
+    if (this.globalData.openid) {
+      return Promise.resolve(this.globalData.openid);
+    }
+    if (!this._openIdPromise) {
+      this._openIdPromise = wx.cloud.callFunction({ name: 'getOpenId' })
+        .then(res => {
+          this.globalData.openid = res.result.openid;
+          return res.result.openid;
+        })
+        .catch(err => {
+          console.error('获取 OpenID 失败', err);
+          this._openIdPromise = null;
+          throw err;
+        });
+    }
+    return this._openIdPromise;
+  },
+
+  _initOpenId() {
+    this.getOpenId().catch(() => {});
+  },
+
+  /**
+   * 获取随机启动文案
+   */
+  getRandomQuote() {
+    const quotes = this.SPLASH_QUOTES;
+    const index = Math.floor(Math.random() * quotes.length);
+    return quotes[index];
   }
 });

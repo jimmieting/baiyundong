@@ -1,43 +1,25 @@
-<!-- 自定义底部导航栏 V1.0 -->
-<view class="tab-bar {{isModalOpen ? 'dimmed' : ''}}">
-  <view class="tab-bar-border"></view>
-  <view class="tab-bar-items">
-    <!-- 巅峰 -->
-    <view 
-      class="tab-bar-item {{currentIndex === 0 ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-index="0"
-    >
-      <view class="tab-icon-row">
-        <text class="tab-icon">🏆</text>
-        <text class="tab-text">巅峰</text>
-      </view>
+<!--
+  自定义底部导航栏
+  中间为 C 位大圆悬浮按钮
+-->
+<view class="tab-bar {{dimmed ? 'dimmed' : ''}}">
+  <!-- 左：巅峰 -->
+  <view class="tab-item" data-index="0" bindtap="switchTab">
+    <view class="tab-icon {{selected === 0 ? 'active' : ''}}">⛰</view>
+    <text class="tab-text {{selected === 0 ? 'active' : ''}}">巅峰</text>
+  </view>
+
+  <!-- 中：攀登（C位大圆） -->
+  <view class="tab-item center" data-index="1" bindtap="switchTab">
+    <view class="center-button {{selected === 1 ? 'active' : ''}}">
+      <text class="center-icon">▲</text>
     </view>
-    
-    <!-- 中间C位 - 悬浮按钮 -->
-    <view class="tab-center">
-      <view 
-        class="center-button {{currentIndex === 1 ? 'active' : ''}}"
-        bindtap="switchTab"
-        data-index="1"
-      >
-        <view class="center-content">
-          <text class="center-icon">⛰️</text>
-          <text class="center-label">攀登</text>
-        </view>
-      </view>
-    </view>
-    
-    <!-- 共建 -->
-    <view 
-      class="tab-bar-item {{currentIndex === 2 ? 'active' : ''}}" 
-      bindtap="switchTab" 
-      data-index="2"
-    >
-      <view class="tab-icon-row">
-        <text class="tab-icon">🤝</text>
-        <text class="tab-text">共建</text>
-      </view>
-    </view>
+    <text class="tab-text center-text {{selected === 1 ? 'active' : ''}}">攀登</text>
+  </view>
+
+  <!-- 右：共建 -->
+  <view class="tab-item" data-index="2" bindtap="switchTab">
+    <view class="tab-icon {{selected === 2 ? 'active' : ''}}">🤝</view>
+    <text class="tab-text {{selected === 2 ? 'active' : ''}}">共建</text>
   </view>
 </view>

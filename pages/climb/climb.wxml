@@ -1,0 +1,67 @@
+<!--
+  攀登页 - 核心 C 位
+  布局：环境层 → 地理状态条 → 核心数据/计时 → C位按钮 → 历史背书
+-->
+<view class="page">
+  <!-- 顶部安全区 -->
+  <view style="height: {{statusBarHeight}}px;"></view>
+
+  <!-- 环境层：日期 + 天气 -->
+  <view class="ambient-bar">
+    <text class="date-text">{{dateText}}</text>
+    <view class="weather-info">
+      <text class="weather-icon">{{weatherIcon}}</text>
+      <text class="weather-temp">{{temperature}}°</text>
+    </view>
+  </view>
+
+  <!-- 地理状态条 -->
+  <view class="geo-bar {{geoStatus}}">
+    <text class="geo-text">{{geoText}}</text>
+  </view>
+
+  <!-- 核心区域 -->
+  <view class="core-area">
+    <!-- 非计时态：个人数据 -->
+    <view class="stats-section" wx:if="{{state === 'IDLE'}}">
+      <view class="glass-card stats-card">
+        <view class="stat-item">
+          <text class="stat-value text-l1">{{totalClimbs}}</text>
+          <text class="stat-label text-l3">年度挑战</text>
+        </view>
+        <view class="stat-divider"></view>
+        <view class="stat-item">
+          <text class="stat-value text-l1">{{personalPB}}</text>
+          <text class="stat-label text-l3">个人最佳</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 计时态：实时数据 -->
+    <view class="timer-section" wx:if="{{state === 'RUNNING'}}">
+      <text class="elapsed-text text-l1">{{elapsedText}}</text>
+      <text class="elapsed-label text-l3">攀登中...</text>
+    </view>
+
+    <!-- C 位大圆按钮 -->
+    <view class="button-area">
+      <view
+        class="peak-button {{buttonEnabled ? '' : 'disabled'}}"
+        bindtap="handleButtonTap"
+      >
+        <text class="button-text">{{buttonText}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 历史背书区域 -->
+  <view class="history-section">
+    <text class="history-text text-l3">
+      2026年您已挑战 {{yearClimbs}} 次，累计爬升 {{yearAscent}} 米
+    </text>
+    <text class="history-link" bindtap="goHistory">历史轨迹 ></text>
+  </view>
+
+  <!-- 底部留白（给 TabBar 腾空间） -->
+  <view style="height: 180rpx;"></view>
+</view>

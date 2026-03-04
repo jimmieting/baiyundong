@@ -1,13 +1,14 @@
 {
   "pages": [
-    "pages/index/index",
-    "pages/leaderboard/leaderboard",
+    "pages/splash/splash",
+    "pages/climb/climb",
+    "pages/summit/summit",
     "pages/cobuild/cobuild",
     "pages/history/history",
-    "pages/recordDetail/recordDetail"
+    "pages/record/record"
   ],
   "window": {
-    "backgroundTextStyle": "light",
+    "backgroundTextStyle": "dark",
     "navigationBarBackgroundColor": "#003344",
     "navigationBarTitleText": "白云洞登山局",
     "navigationBarTextStyle": "white",
@@ -20,11 +21,11 @@
     "backgroundColor": "#003344",
     "list": [
       {
-        "pagePath": "pages/leaderboard/leaderboard",
+        "pagePath": "pages/summit/summit",
         "text": "巅峰"
       },
       {
-        "pagePath": "pages/index/index",
+        "pagePath": "pages/climb/climb",
         "text": "攀登"
       },
       {

@@ -1,127 +1,64 @@
-// 白云洞登山局 - 共建页面 V1.0
-
-const db = wx.cloud.database();
+/**
+ * 共建页
+ * 文化卡片 + 共建者名录 + 支持/反馈
+ *
+ * Phase 1: 页面骨架
+ * Phase 5: 完整功能
+ */
+const app = getApp();
 
 Page({
   data: {
-    cobuilderList: [],
-    showModal: false
+    // 文化卡片
+    cultureCards: [
+      { content: '朱熹曾于鼓山白云洞题"天路"二字，意指通往精神高处的道路。' },
+      { content: '白云洞海拔约400米，从埠兴村登山口出发，垂直爬升约280米。' }
+    ],
+
+    // 共建者名录
+    builders: [],
+    buildersLoading: true,
+
+    // 半屏模态框
+    showModal: false,
+
+    // 系统
+    statusBarHeight: 0
   },
 
   onLoad() {
-    this.loadCobuilderList();
+    const systemInfo = app.globalData.systemInfo;
+    if (systemInfo) {
+      this.setData({ statusBarHeight: systemInfo.statusBarHeight || 44 });
+    }
+
+    // Phase 5 将从云端加载数据
+    this.setData({ buildersLoading: false });
   },
 
-  // 加载共建者名录
-  async loadCobuilderList() {
-    try {
-      const result = await db.collection('t_cobuilder')
-        .orderBy('honor_level', 'desc')
-        .orderBy('created_at', 'asc')
-        .limit(20)
-        .get();
-
-      this.setData({
-        cobuilderList: result.data || []
-      });
-    } catch (err) {
-      console.error('加载共建者列表失败', err);
+  onShow() {
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setData({ selected: 2 });
     }
   },
 
-  // 显示支持/反馈模态框
-  showSupportModal() {
+  /**
+   * 打开支持/反馈模态框
+   */
+  openModal() {
     this.setData({ showModal: true });
-    // 淡化底部标签栏
-    const tabBar = this.selectComponent('#tab-bar');
-    if (tabBar) {
-      tabBar.setData({ dimmed: true });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setDimmed(true);
     }
   },
 
-  // 隐藏模态框
-  hideModal() {
+  /**
+   * 关闭模态框
+   */
+  closeModal() {
     this.setData({ showModal: false });
-    // 恢复底部标签栏
-    const tabBar = this.selectComponent('#tab-bar');
-    if (tabBar) {
-      tabBar.setData({ dimmed: false });
+    if (typeof this.getTabBar === 'function' && this.getTabBar()) {
+      this.getTabBar().setDimmed(false);
     }
-  },
-
-  // 跳转反馈
-  goToFeedback() {
-    this.hideModal();
-    // TODO: 跳转到反馈页面
-    wx.showToast({
-      title: '反馈功能开发中',
-      icon: 'none'
-    });
-  },
-
-  // 显示捐助
-  showDonation() {
-    this.hideModal();
-    wx.showModal({
-      title: '捐助支持',
-      content: '感谢你的支持！捐助功能正在开发中。',
-      showCancel: false
-    });
-  },
-
-  // 跳转数据初始化页
-  goToInit() {
-    wx.navigateTo({
-      url: '/pages/init/init'
-    });
-  },
-
-  // 提交投票
-  async submitVote() {
-    this.hideModal();
-    
-    try {
-      const openid = await this.getOpenId();
-      
-      // 检查是否已投票
-      const checkRes = await db.collection('t_votes').where({
-        _openid: openid,
-        type: 'SPIRITUAL'
-      }).get();
-
-      if (checkRes.data && checkRes.data.length > 0) {
-        wx.showToast({
-          title: '今天已投票',
-          icon: 'none'
-        });
-        return;
-      }
-
-      // 记录投票
-      await db.collection('t_votes').add({
-        data: {
-          type: 'SPIRITUAL',
-          created_at: db.serverDate()
-        }
-      });
-
-      wx.showToast({
-        title: '感谢你的共鸣！',
-        icon: 'success'
-      });
-    } catch (err) {
-      console.error('投票失败', err);
-    }
-  },
-
-  // 获取OpenID
-  getOpenId() {
-    return new Promise((resolve, reject) => {
-      wx.cloud.callFunction({
-        name: 'getOpenId',
-        success: (res) => resolve(res.result.openid),
-        fail: reject
-      });
-    });
   }
 });

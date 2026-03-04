@@ -1,0 +1,105 @@
+/**
+ * 记录详情页样式
+ */
+
+.page {
+  min-height: 100vh;
+  padding: 24rpx 32rpx;
+}
+
+.loading-tip {
+  display: flex;
+  justify-content: center;
+  padding: 200rpx 0;
+}
+
+/* ========== 成绩展示 ========== */
+.result-hero {
+  text-align: center;
+  padding: 60rpx 0 40rpx;
+}
+
+.duration {
+  font-size: 96rpx;
+  letter-spacing: 8rpx;
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16rpx;
+  margin-top: 16rpx;
+}
+
+.badge-text {
+  font-size: 32rpx;
+  color: var(--color-accent);
+}
+
+.pb-tag {
+  font-size: 24rpx;
+  color: #E67E22;
+  background: rgba(230, 126, 34, 0.15);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+}
+
+/* ========== 数据卡片 ========== */
+.data-card {
+  margin-bottom: 24rpx;
+}
+
+.data-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20rpx 0;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.06);
+}
+
+.data-row:last-child {
+  border-bottom: none;
+}
+
+.data-value {
+  font-size: 30rpx;
+  color: var(--color-ivory);
+  font-weight: 500;
+}
+
+/* ========== 图表占位 ========== */
+.chart-placeholder {
+  height: 300rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 40rpx;
+}
+
+/* ========== 操作按钮 ========== */
+.action-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+  padding: 20rpx 0;
+}
+
+.action-btn {
+  text-align: center;
+  padding: 28rpx;
+  border-radius: 16rpx;
+  font-size: 30rpx;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #D34941 0%, #E67E22 100%);
+  color: #F2F2F2;
+  font-weight: 600;
+}
+
+.action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--color-muted);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+}
