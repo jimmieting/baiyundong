@@ -1,0 +1,43 @@
+<!-- 自定义底部导航栏 V1.0 -->
+<view class="tab-bar {{isModalOpen ? 'dimmed' : ''}}">
+  <view class="tab-bar-border"></view>
+  <view class="tab-bar-items">
+    <!-- 巅峰 -->
+    <view 
+      class="tab-bar-item {{currentIndex === 0 ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-index="0"
+    >
+      <view class="tab-icon-row">
+        <text class="tab-icon">🏆</text>
+        <text class="tab-text">巅峰</text>
+      </view>
+    </view>
+    
+    <!-- 中间C位 - 悬浮按钮 -->
+    <view class="tab-center">
+      <view 
+        class="center-button {{currentIndex === 1 ? 'active' : ''}}"
+        bindtap="switchTab"
+        data-index="1"
+      >
+        <view class="center-content">
+          <text class="center-icon">⛰️</text>
+          <text class="center-label">攀登</text>
+        </view>
+      </view>
+    </view>
+    
+    <!-- 共建 -->
+    <view 
+      class="tab-bar-item {{currentIndex === 2 ? 'active' : ''}}" 
+      bindtap="switchTab" 
+      data-index="2"
+    >
+      <view class="tab-icon-row">
+        <text class="tab-icon">🤝</text>
+        <text class="tab-text">共建</text>
+      </view>
+    </view>
+  </view>
+</view>

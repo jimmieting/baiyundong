@@ -1,0 +1,44 @@
+[
+  {
+    "type": "SPLASH",
+    "content": "朱熹曾于此见'天路'，你今日所行亦然。",
+    "priority": 10,
+    "note": "核心品牌语"
+  },
+  {
+    "type": "SPLASH",
+    "content": "向上的秩序，是与自己博弈。",
+    "priority": 8,
+    "note": "长期主义逻辑"
+  },
+  {
+    "type": "SPLASH",
+    "content": "汗水无欺，数据确权。",
+    "priority": 5,
+    "note": "技术公理"
+  },
+  {
+    "type": "SPLASH",
+    "content": "每一级石阶，都是通往巅峰的秩序。",
+    "priority": 5,
+    "note": "视觉锚点"
+  },
+  {
+    "type": "SPLASH",
+    "content": "白云洞不仅是一座山，更是一次秩序的重建。",
+    "priority": 5,
+    "note": "战略视角"
+  },
+  {
+    "type": "HISTORY",
+    "content": "白云洞位于福州鼓山系，是福州最具挑战性的登山路线之一。海拔约700米，累计爬升280m。自古为文人墨客修行之地。",
+    "priority": 10,
+    "note": "地理概况"
+  },
+  {
+    "type": "HISTORY",
+    "content": "南宋大儒朱熹曾游历于此，留下'天路'之说。其石阶陡峭，如同通往云端的阶梯，故名天路。",
+    "priority": 10,
+    "note": "朱熹天路"
+  }
+]

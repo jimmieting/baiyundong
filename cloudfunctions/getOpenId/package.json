@@ -1,0 +1,11 @@
+{
+  "name": "getOpenId",
+  "version": "1.0.0",
+  "description": "获取用户OpenID",
+  "main": "index.js",
+  "author": "白云洞登山局",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

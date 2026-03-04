@@ -1,0 +1,296 @@
+/* 白云洞登山局 - 攀登页面样式 V1.0 */
+
+.container {
+  padding: 24rpx 40rpx;
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 120rpx;
+  padding-bottom: 220rpx;
+}
+
+/* 启动页遮罩 */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, #001A24 0%, #003344 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  padding: 0 60rpx;
+}
+
+.splash-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #F2F2F2;
+  letter-spacing: 4rpx;
+  margin-bottom: 100rpx;
+}
+
+.splash-quote {
+  font-size: 36rpx;
+  color: #F2F2F2;
+  letter-spacing: 4rpx;
+  font-style: italic;
+  text-align: center;
+  line-height: 1.6;
+}
+
+/* 品牌标题 */
+.brand-title {
+  font-size: 32rpx;
+  color: rgba(242, 242, 242, 0.6);
+  width: 90%;
+  margin-bottom: 20rpx;
+}
+
+/* 环境层 */
+.ambient-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 90%;
+  box-sizing: border-box;
+  padding: 20rpx 40rpx;
+  margin-top: 20rpx;
+  margin-bottom: 40rpx;
+}
+
+.date {
+  font-size: 28rpx;
+  color: #8899A6;
+}
+
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.weather-icon {
+  font-size: 36rpx;
+}
+
+.temp {
+  font-size: 32rpx;
+  color: #F2F2F2;
+}
+
+/* 地理状态条 */
+.geofence-status {
+  width: 100%;
+  height: 80rpx;
+  border-radius: 16rpx;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 60rpx;
+  transition: all 0.3s ease;
+}
+
+.geofence-status.far {
+  background: rgba(136, 153, 166, 0.2);
+  color: #8899A6;
+}
+
+.geofence-status.near {
+  background: rgba(242, 242, 242, 0.1);
+  color: #F2F2F2;
+  border: 1rpx solid rgba(242, 242, 242, 0.3);
+}
+
+.geofence-status.inside {
+  background: rgba(211, 73, 65, 0.2);
+  color: #D34941;
+  border: 1rpx solid #D34941;
+  animation: breathe 2s ease-in-out infinite;
+}
+
+/* 核心数据区 */
+.core-data {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 60rpx;
+}
+
+.pb-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.pb-label {
+  font-size: 24rpx;
+  color: #8899A6;
+  letter-spacing: 4rpx;
+}
+
+.pb-time {
+  font-size: 120rpx;
+  font-weight: 700;
+  color: #F2F2F2;
+}
+
+.pb-count {
+  font-size: 24rpx;
+  color: #8899A6;
+}
+
+/* 计时双轨圆环 */
+.timer-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.dual-ring {
+  position: relative;
+  width: 400rpx;
+  height: 400rpx;
+}
+
+.outer-ring {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  border: 6rpx solid rgba(242, 242, 242, 0.2);
+  box-sizing: border-box;
+}
+
+.inner-ring {
+  position: absolute;
+  top: 15%;
+  left: 15%;
+  width: 70%;
+  height: 70%;
+  border-radius: 50%;
+  border: 4rpx solid rgba(242, 242, 242, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.timer-display {
+  font-size: 72rpx;
+  font-weight: 700;
+  color: #F2F2F2;
+  font-variant-numeric: tabular-nums;
+}
+
+.timer-label {
+  font-size: 24rpx;
+  color: #8899A6;
+  margin-top: 8rpx;
+}
+
+/* C位大圆按钮 */
+.peak-button-wrapper {
+  margin-bottom: 40rpx;
+}
+
+.peak-button {
+  width: 240rpx;
+  height: 240rpx;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+}
+
+/* IDLE状态 - 黛青渐变 */
+.peak-button.idle {
+  background: linear-gradient(135deg, #004E64 0%, #003344 100%);
+  box-shadow: 0 10rpx 30rpx rgba(0, 78, 100, 0.4);
+}
+
+/* RUNNING状态 - 绿色 */
+.peak-button.running {
+  background: linear-gradient(135deg, #2ECC71 0%, #27AE60 100%);
+  box-shadow: 0 10rpx 40rpx rgba(46, 204, 113, 0.4);
+}
+
+.peak-button:active {
+  transform: scale(0.95);
+}
+
+.peak-button.disabled {
+  filter: grayscale(80%);
+  opacity: 0.6;
+}
+
+.peak-button.active {
+  opacity: 1;
+  filter: none;
+}
+
+/* 按钮内部结构 - column布局 */
+.button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.button-icon {
+  font-size: 60rpx;
+}
+
+.button-text {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: rgba(242, 242, 242, 0.9);
+  letter-spacing: 2rpx;
+}
+
+/* 历史背书区域 */
+.history-banner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.history-text {
+  font-size: 24rpx;
+  color: #8899A6;
+}
+
+.history-link {
+  color: #D34941;
+  font-size: 24rpx;
+}
+
+/* 弱网提示 */
+.network-tip {
+  position: fixed;
+  bottom: 120rpx;
+  font-size: 24rpx;
+  color: #8899A6;
+}
+
+/* 呼吸灯动画 */
+@keyframes breathe {
+  0%, 100% { 
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 30rpx rgba(242, 242, 242, 0.6);
+  }
+}

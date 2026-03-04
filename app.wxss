@@ -1,0 +1,102 @@
+/* 白云洞登山局 - 全局样式 V1.0 */
+/* 核心色盘 */
+page {
+  /* 黛青背景 - 凌晨山间 */
+  background: linear-gradient(180deg, #001A24 0%, #003344 100%);
+  background-color: #003344;
+  min-height: 100vh;
+  font-family: -apple-system, "SF Pro Display", "PingFang SC", sans-serif;
+  color: #F2F2F2;
+  box-sizing: border-box;
+}
+
+/* 全局容器 - 安全边距 */
+.container {
+  padding: 24rpx 40rpx; /* 左右40rpx安全边距 */
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding-bottom: 200rpx; /* 为底部导航留空间 */
+}
+
+/* 字体层级 */
+.text-l1 {
+  font-size: 84rpx;
+  font-weight: 700;
+  color: #F2F2F2;
+}
+
+.text-l2 {
+  font-size: 36rpx;
+  font-weight: 500;
+  letter-spacing: 4rpx;
+  color: #F2F2F2;
+}
+
+.text-l3 {
+  font-size: 28rpx;
+  color: #8899A6;
+}
+
+.text-l4 {
+  font-size: 32rpx;
+  font-style: italic;
+  color: #F2F2F2;
+}
+
+/* 毛玻璃卡片 */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1rpx solid rgba(255, 255, 255, 0.1);
+  border-radius: 24rpx;
+  padding: 24rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 功能色 */
+.accent-red {
+  color: #D34941;
+}
+
+.muted-gray {
+  color: #8899A6;
+}
+
+.warning-red {
+  color: #FF4D4F;
+}
+
+/* 按钮禁用态 */
+.btn-disabled {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+/* 居中flex */
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* 呼吸灯效果 */
+@keyframes breathe {
+  0%, 100% { 
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.3);
+  }
+  50% { 
+    box-shadow: 0 0 30rpx rgba(242, 242, 242, 0.6);
+  }
+}
+
+.breathing {
+  animation: breathe 2s ease-in-out infinite;
+}

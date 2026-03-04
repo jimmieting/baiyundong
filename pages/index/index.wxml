@@ -1,0 +1,77 @@
+<!-- 白云洞登山局 - 攀登页面 V1.0 -->
+<!-- 核心哲学：向上的秩序 -->
+
+<!-- 启动页遮罩 -->
+<view class="splash-screen" wx:if="{{showSplash}}">
+  <text class="splash-title">白云洞登山局</text>
+  <text class="splash-quote">{{splashMessage}}</text>
+</view>
+
+<view class="container" style="padding-top: {{statusBarHeight + 100}}rpx">
+  <!-- 品牌标题 - 长按5秒开启测试模式 -->
+  <view class="brand-title" bindlongpress="enableTestMode">白云洞登山局</view>
+  
+  <!-- 环境层 -->
+  <view class="ambient-info">
+    <text class="date">{{date}}</text>
+    <view class="weather">
+      <text class="weather-icon">{{weatherIcon}}</text>
+      <text class="temp">{{temperature}}°</text>
+    </view>
+  </view>
+
+  <!-- 地理状态条 -->
+  <view class="geofence-status {{geofenceClass}}" bindtap="reAuthLocation">
+    <text>{{geofenceText}}</text>
+  </view>
+
+  <!-- 核心数据区 -->
+  <view class="core-data">
+    <block wx:if="{{currentState === 'IDLE'}}">
+      <!-- 非计时态：显示PB -->
+      <view class="pb-section">
+        <text class="pb-label">个人最佳成绩</text>
+        <text class="pb-time">{{personalPB || '--:--'}}</text>
+        <text class="pb-count">累计攀登 {{totalClimbs || 0}} 次</text>
+      </view>
+    </block>
+    <block wx:else>
+      <!-- 计时态：显示实时用时 -->
+      <view class="timer-section">
+        <view class="dual-ring">
+          <view class="outer-ring" style="--progress: {{timerProgress}}">
+            <view class="inner-ring">
+              <text class="timer-display">{{elapsedTime}}</text>
+              <text class="timer-label">已用时间</text>
+            </view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </view>
+
+  <!-- C位大圆按钮 - 状态驱动 -->
+  <view class="peak-button-wrapper">
+    <button 
+      class="peak-button {{currentState === 'RUNNING' ? 'running' : 'idle'}} {{canStart || testMode ? 'active' : 'disabled'}}" 
+      bindtap="handleButtonTap"
+      disabled="{{!canStart && !testMode && currentState === 'IDLE'}}"
+    >
+      <view class="button-content">
+        <text class="button-icon">{{currentState === 'IDLE' ? '⛰️' : '🏁'}}</text>
+        <text class="button-text">{{currentState === 'IDLE' ? '开始攀登' : '到达终点'}}</text>
+      </view>
+    </button>
+  </view>
+
+  <!-- 历史背书区域 -->
+  <view class="history-banner glass-card">
+    <text class="history-text">2026年您已攀登 {{totalClimbs || 0}} 次，累计爬升 {{totalAscent || 0}} 米</text>
+    <navigator url="/pages/history/history" class="history-link">历史轨迹 ></navigator>
+  </view>
+
+  <!-- 弱网提示 -->
+  <view class="network-tip" wx:if="{{showNetworkTip}}">
+    <text>网络不稳定，同步中...</text>
+  </view>
+</view>

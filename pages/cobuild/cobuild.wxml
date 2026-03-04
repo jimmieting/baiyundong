@@ -1,0 +1,84 @@
+<!-- 白云洞登山局 - 共建页面 V1.0 -->
+
+<view class="container">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="title">共建</text>
+  </view>
+
+  <!-- 文化卡片 -->
+  <view class="culture-card glass-card">
+    <view class="culture-header">
+      <text class="culture-icon">🏔️</text>
+      <text class="culture-title">向上的秩序</text>
+    </view>
+    <view class="culture-content">
+      <text class="quote">"朱熹曾于此见'天路'，你今日所行亦然。"</text>
+      <text class="description">
+        白云洞登山局是一个独立运行的数字化裁判系统。通过地理围栏与算法协议，为每一位登山者提供具备公信力的成绩记录。
+      </text>
+    </view>
+    <view class="history-section">
+      <text class="section-title">白云洞历史</text>
+      <text class="history-text">
+        白云洞位于福州鼓山系，是福州最具挑战性的登山路线之一。海拔约700米，累计爬升约280米。自古为文人墨客修行之地，朱熹曾游历于此，留下"天路"之说。
+      </text>
+    </view>
+  </view>
+
+  <!-- 共建者名录 -->
+  <view class="cobuilder-section">
+    <text class="section-title">共建者名录</text>
+    <scroll-view scroll-x class="cobuilder-list">
+      <view class="cobuilder-item" wx:for="{{cobuilderList}}" wx:key="_id">
+        <image class="cobuilder-avatar" src="{{item.avatar_url || '/images/default-avatar.png'}}" />
+        <text class="cobuilder-name {{'level-' + item.honor_level}}">{{item.nickname}}</text>
+        <text class="cobuilder-badge">{{item.honor_level === 10 ? '置顶' : item.honor_level === 5 ? '加粗' : '股东'}}</text>
+      </view>
+      <view class="cobuilder-add" wx:if="{{cobuilderList.length === 0}}">
+        <text>暂无共建者，成为第一个！</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-buttons">
+    <button class="action-btn" bindtap="showSupportModal">
+      <text>支持/反馈</text>
+    </button>
+    
+    <!-- 初始化按钮已移除 -->
+  </view>
+</view>
+
+<!-- 支持/反馈半屏模态框 -->
+<view class="modal-mask" wx:if="{{showModal}}" bindtap="hideModal"></view>
+<view wx:if="{{showModal}}" class="modal-content show">
+  <view class="modal-header">
+    <text class="modal-title">支持/反馈</text>
+    <text class="modal-close" bindtap="hideModal">✕</text>
+  </view>
+  <view class="modal-body">
+    <view class="option-item" bindtap="goToFeedback">
+      <text class="option-icon">🐛</text>
+      <view class="option-info">
+        <text class="option-title">技术反馈</text>
+        <text class="option-desc">提交Bug或改进建议</text>
+      </view>
+    </view>
+    <view class="option-item" bindtap="showDonation">
+      <text class="option-icon">💰</text>
+      <view class="option-info">
+        <text class="option-title">捐助支持</text>
+        <text class="option-desc">守护这套秩序</text>
+      </view>
+    </view>
+    <view class="option-item" bindtap="submitVote">
+      <text class="option-icon">👍</text>
+      <view class="option-info">
+        <text class="option-title">精神共鸣</text>
+        <text class="option-desc">为"向上的秩序"投票</text>
+      </view>
+    </view>
+  </view>
+</view>

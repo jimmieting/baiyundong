@@ -1,0 +1,11 @@
+{
+  "name": "seedData",
+  "version": "1.0.0",
+  "description": "批量导入初始数据",
+  "main": "index.js",
+  "author": "白云洞登山局",
+  "license": "MIT",
+  "dependencies": {
+    "wx-server-sdk": "~2.6.3"
+  }
+}

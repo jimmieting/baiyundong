@@ -1,0 +1,49 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/leaderboard/leaderboard",
+    "pages/cobuild/cobuild",
+    "pages/history/history",
+    "pages/recordDetail/recordDetail"
+  ],
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarBackgroundColor": "#003344",
+    "navigationBarTitleText": "白云洞登山局",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#003344"
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#8899A6",
+    "selectedColor": "#D34941",
+    "backgroundColor": "#003344",
+    "list": [
+      {
+        "pagePath": "pages/leaderboard/leaderboard",
+        "text": "巅峰"
+      },
+      {
+        "pagePath": "pages/index/index",
+        "text": "攀登"
+      },
+      {
+        "pagePath": "pages/cobuild/cobuild",
+        "text": "共建"
+      }
+    ]
+  },
+  "permission": {
+    "scope.userLocation": {
+      "desc": "用于实时攀登计时与安全预警"
+    }
+  },
+  "requiredBackgroundModes": ["location"],
+  "requiredPrivateInfos": [
+    "startLocationUpdateBackground",
+    "onLocationChange",
+    "getLocation"
+  ],
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}
