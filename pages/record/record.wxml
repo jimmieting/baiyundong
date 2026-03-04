@@ -3,12 +3,16 @@
   成绩 + 数据卡片 + 海拔折线 + 操作按钮
 -->
 <view class="page">
-  <!-- 加载中 -->
   <view class="loading-tip" wx:if="{{loading}}">
     <text class="text-l3">加载中...</text>
   </view>
 
   <view wx:if="{{!loading}}">
+    <!-- 状态提示（异常记录） -->
+    <view class="suspect-bar" wx:if="{{isSuspect}}">
+      <text class="suspect-text">⚠️ {{statusText}}</text>
+    </view>
+
     <!-- 成绩大字 -->
     <view class="result-hero">
       <text class="duration text-l1">{{durationText}}</text>
@@ -25,6 +29,14 @@
         <text class="data-value">{{dateText}}</text>
       </view>
       <view class="data-row">
+        <text class="data-label text-l3">开始时间</text>
+        <text class="data-value">{{startTimeText}}</text>
+      </view>
+      <view class="data-row">
+        <text class="data-label text-l3">结束时间</text>
+        <text class="data-value">{{endTimeText}}</text>
+      </view>
+      <view class="data-row">
         <text class="data-label text-l3">海拔爬升</text>
         <text class="data-value">{{altitudeDelta}} 米</text>
       </view>
@@ -34,9 +46,14 @@
       </view>
     </view>
 
-    <!-- 海拔折线图区域（Phase 4 实现） -->
-    <view class="chart-placeholder glass-card">
-      <text class="text-l3">海拔折线图</text>
+    <!-- 海拔折线图 -->
+    <view class="glass-card chart-section">
+      <text class="section-title text-l3">海拔变化</text>
+      <altitude-chart
+        samples="{{samples}}"
+        startAlt="{{startAlt}}"
+        endAlt="{{endAlt}}"
+      />
     </view>
 
     <!-- 操作按钮 -->
@@ -49,4 +66,7 @@
       </view>
     </view>
   </view>
+
+  <!-- 隐藏的海报 Canvas -->
+  <canvas id="posterCanvas" type="2d" class="poster-canvas"></canvas>
 </view>

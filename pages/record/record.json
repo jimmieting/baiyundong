@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "记录详情",
-  "usingComponents": {}
+  "usingComponents": {
+    "altitude-chart": "/components/altitude-chart/index"
+  }
 }

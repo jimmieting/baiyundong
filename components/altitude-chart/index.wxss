@@ -1,0 +1,12 @@
+/**
+ * 海拔折线图样式
+ */
+.chart-container {
+  position: relative;
+}
+
+.chart-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}

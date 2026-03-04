@@ -1,0 +1,11 @@
+<!--
+  海拔折线图
+-->
+<view class="chart-container" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;">
+  <canvas
+    id="altChart"
+    type="2d"
+    class="chart-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+  ></canvas>
+</view>

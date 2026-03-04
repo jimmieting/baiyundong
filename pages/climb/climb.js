@@ -7,6 +7,7 @@ const geo = require('../../utils/geo');
 const timeUtil = require('../../utils/time');
 const storage = require('../../utils/storage');
 const identity = require('../../utils/identity');
+const weather = require('../../utils/weather');
 
 Page({
   data: {
@@ -59,6 +60,7 @@ Page({
     this._initLocation();
     this._reconnectFromCloud();
     this._loadUserStats();
+    this._loadWeather();
   },
 
   onShow() {
@@ -247,6 +249,21 @@ Page({
       }
     } catch (err) {
       console.error('加载用户数据失败', err);
+    }
+  },
+
+  // ========== 天气 ==========
+
+  async _loadWeather() {
+    try {
+      // 使用白云洞附近坐标
+      const result = await weather.fetchWeather(26.073, 119.381);
+      this.setData({
+        weatherIcon: result.icon,
+        temperature: result.temp
+      });
+    } catch (err) {
+      console.error('天气加载失败', err);
     }
   },
 

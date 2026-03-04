@@ -68,13 +68,37 @@
   font-weight: 500;
 }
 
-/* ========== 图表占位 ========== */
-.chart-placeholder {
-  height: 300rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ========== 异常提示 ========== */
+.suspect-bar {
+  text-align: center;
+  padding: 16rpx 24rpx;
+  background: rgba(255, 77, 79, 0.15);
+  border-radius: 12rpx;
+  margin-bottom: 12rpx;
+}
+
+.suspect-text {
+  font-size: 26rpx;
+  color: var(--color-warning);
+}
+
+/* ========== 海拔折线图 ========== */
+.chart-section {
   margin-bottom: 40rpx;
+}
+
+.section-title {
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+/* ========== 海报 Canvas（隐藏） ========== */
+.poster-canvas {
+  width: 375px;
+  height: 500px;
+  position: fixed;
+  left: -9999px;
+  top: -9999px;
 }
 
 /* ========== 操作按钮 ========== */
