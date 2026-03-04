@@ -1,0 +1,6 @@
+<!--
+  地理状态条
+-->
+<view class="geo-bar {{status}}">
+  <text class="geo-text">{{text}}</text>
+</view>

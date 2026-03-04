@@ -1,0 +1,25 @@
+/**
+ * 计时圆环样式
+ */
+
+.timer-ring-container {
+  position: relative;
+}
+
+.timer-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.timer-center {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}

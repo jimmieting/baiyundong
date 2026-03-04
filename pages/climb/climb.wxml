@@ -1,6 +1,6 @@
 <!--
   攀登页 - 核心 C 位
-  布局：环境层 → 地理状态条 → 核心数据/计时 → C位按钮 → 历史背书
+  布局：环境层 → 地理状态条 → 核心数据/计时圆环 → C位按钮 → 历史背书
 -->
 <view class="page">
   <!-- 顶部安全区 -->
@@ -15,10 +15,8 @@
     </view>
   </view>
 
-  <!-- 地理状态条 -->
-  <view class="geo-bar {{geoStatus}}">
-    <text class="geo-text">{{geoText}}</text>
-  </view>
+  <!-- 地理状态条组件 -->
+  <geofence-bar status="{{geoStatus}}" text="{{geoText}}" />
 
   <!-- 核心区域 -->
   <view class="core-area">
@@ -37,10 +35,12 @@
       </view>
     </view>
 
-    <!-- 计时态：实时数据 -->
+    <!-- 计时态：双轨圆环 + 实时数据 -->
     <view class="timer-section" wx:if="{{state === 'RUNNING'}}">
-      <text class="elapsed-text text-l1">{{elapsedText}}</text>
-      <text class="elapsed-label text-l3">攀登中...</text>
+      <timer-ring elapsed="{{elapsed}}" size="{{360}}">
+        <text class="elapsed-text text-l1">{{elapsedText}}</text>
+        <text class="elapsed-label text-l3">攀登中</text>
+      </timer-ring>
     </view>
 
     <!-- C 位大圆按钮 -->
@@ -62,6 +62,6 @@
     <text class="history-link" bindtap="goHistory">历史轨迹 ></text>
   </view>
 
-  <!-- 底部留白（给 TabBar 腾空间） -->
+  <!-- 底部留白 -->
   <view style="height: 180rpx;"></view>
 </view>

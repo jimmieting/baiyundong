@@ -1,5 +1,8 @@
 {
   "navigationStyle": "custom",
   "disableScroll": true,
-  "usingComponents": {}
+  "usingComponents": {
+    "geofence-bar": "/components/geofence-bar/index",
+    "timer-ring": "/components/timer-ring/index"
+  }
 }

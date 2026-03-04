@@ -1,0 +1,14 @@
+<!--
+  双轨计时圆环
+-->
+<view class="timer-ring-container" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;">
+  <canvas
+    id="timerCanvas"
+    type="2d"
+    class="timer-canvas"
+    style="width: {{canvasWidth}}px; height: {{canvasHeight}}px;"
+  ></canvas>
+  <view class="timer-center">
+    <slot></slot>
+  </view>
+</view>

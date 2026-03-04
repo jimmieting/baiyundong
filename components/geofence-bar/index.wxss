@@ -1,0 +1,52 @@
+/**
+ * 地理状态条样式
+ */
+
+.geo-bar {
+  text-align: center;
+  padding: 16rpx 24rpx;
+  border-radius: 16rpx;
+  transition: all 0.3s ease;
+}
+
+/* 远距：灰色 */
+.geo-bar.far {
+  background: rgba(136, 153, 166, 0.15);
+}
+
+.geo-bar.far .geo-text {
+  color: #8899A6;
+}
+
+/* 边缘（50-100m）：白色 + 呼吸灯 */
+.geo-bar.near {
+  background: rgba(242, 242, 242, 0.1);
+  animation: breathe 2s ease-in-out infinite;
+}
+
+.geo-bar.near .geo-text {
+  color: #F2F2F2;
+}
+
+/* 围栏内（<50m）：深赤 */
+.geo-bar.inside {
+  background: rgba(211, 73, 65, 0.2);
+}
+
+.geo-bar.inside .geo-text {
+  color: #D34941;
+  font-weight: 500;
+}
+
+.geo-text {
+  font-size: 26rpx;
+}
+
+@keyframes breathe {
+  0%, 100% {
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 15rpx rgba(242, 242, 242, 0.3);
+  }
+}
