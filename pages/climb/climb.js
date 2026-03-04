@@ -1,6 +1,7 @@
 /**
  * 攀登页 - 核心 C 位
  * 完整状态机 + 地理围栏 + 计时器 + 云端持久化
+ * Phase 6: 5s超时保底 + 本地优先恢复 + 每60s检查点 + 网络恢复自动同步
  */
 const app = getApp();
 const geo = require('../../utils/geo');
@@ -8,6 +9,11 @@ const timeUtil = require('../../utils/time');
 const storage = require('../../utils/storage');
 const identity = require('../../utils/identity');
 const weather = require('../../utils/weather');
+const network = require('../../utils/network');
+
+// 常量
+const CHECKPOINT_INTERVAL = 60; // 状态检查点间隔（秒）
+const CLOUD_TIMEOUT = 5000;     // 云操作超时（毫秒）
 
 Page({
   data: {
@@ -39,6 +45,9 @@ Page({
     buttonEnabled: false,
     buttonText: '等待定位',
 
+    // 网络状态提示
+    isOffline: false,
+
     // 系统
     statusBarHeight: 0
   },
@@ -49,6 +58,8 @@ Page({
   _currentLocation: null,
   _workoutId: null,
   _startTimestamp: null,
+  _removeNetworkListener: null, // 网络恢复回调取消函数
+  _pendingArrivalData: null,    // 断网时缓存的到达数据
 
   onLoad() {
     const systemInfo = app.globalData.systemInfo;
@@ -56,22 +67,43 @@ Page({
       this.setData({ statusBarHeight: systemInfo.statusBarHeight || 44 });
     }
 
+    this.setData({ isOffline: !network.isOnline() });
+
     this._initDate();
     this._initLocation();
-    this._reconnectFromCloud();
+    this._tryReconnect();   // 优先本地恢复，再尝试云端
     this._loadUserStats();
     this._loadWeather();
+    this._registerNetworkRecovery();
   },
 
   onShow() {
     if (typeof this.getTabBar === 'function' && this.getTabBar()) {
       this.getTabBar().setData({ selected: 1 });
     }
+    // 刷新网络状态
+    this.setData({ isOffline: !network.isOnline() });
   },
 
   onUnload() {
     this._clearTimer();
     this._stopLocationWatch();
+    // 卸载前保存一次状态快照
+    if (this.data.state === 'RUNNING') {
+      this._saveCheckpoint();
+    }
+    // 取消网络监听
+    if (this._removeNetworkListener) {
+      this._removeNetworkListener();
+      this._removeNetworkListener = null;
+    }
+  },
+
+  onHide() {
+    // 切后台时也保存检查点
+    if (this.data.state === 'RUNNING') {
+      this._saveCheckpoint();
+    }
   },
 
   // ========== 初始化 ==========
@@ -189,36 +221,188 @@ Page({
         alt: location.altitude || 0,
         timestamp: Date.now()
       });
+
+      // 每60秒写一次检查点
+      if (storage.getSecondsSinceCheckpoint() >= CHECKPOINT_INTERVAL) {
+        this._saveCheckpoint();
+      }
     }
   },
 
-  // ========== 云端重连 ==========
+  // ========== 网络恢复监听 ==========
 
+  _registerNetworkRecovery() {
+    this._removeNetworkListener = network.onRecover(() => {
+      console.log('攀登页：网络恢复');
+      this.setData({ isOffline: false });
+
+      // 如果有待提交的到达数据，自动重试
+      if (this._pendingArrivalData) {
+        console.log('自动重试到达提交...');
+        this._syncArrivalToCloud(this._pendingArrivalData);
+      }
+
+      // 如果处于 RUNNING 状态，尝试同步当前状态到云端
+      if (this.data.state === 'RUNNING' && this._workoutId) {
+        this._syncRunningStateToCloud();
+      }
+    });
+  },
+
+  /**
+   * RUNNING 状态下网络恢复，同步采样数据到云端
+   */
+  async _syncRunningStateToCloud() {
+    try {
+      const db = wx.cloud.database();
+      const samples = storage.getSamples();
+      if (samples.length > 0) {
+        await network.withTimeout(
+          db.collection('t_workout').doc(this._workoutId).update({
+            data: { altitude_samples: samples }
+          }),
+          CLOUD_TIMEOUT,
+          '同步采样数据'
+        );
+        console.log('采样数据已同步到云端');
+      }
+    } catch (err) {
+      console.warn('采样数据同步失败，下次恢复再试', err);
+    }
+  },
+
+  // ========== 状态恢复（本地优先 + 云端兜底）==========
+
+  /**
+   * 尝试恢复进行中的攀登状态
+   * 策略：先查本地快照（0延迟），再查云端记录（5s超时）
+   */
+  async _tryReconnect() {
+    // 第一步：本地快照恢复（瞬时完成）
+    const localState = storage.getClimbState();
+    if (localState && localState.state === 'RUNNING' && localState.workoutId) {
+      console.log('从本地快照恢复', localState);
+      this._restoreFromSnapshot(localState);
+      // 在线则异步校验云端记录是否仍然有效
+      if (network.isOnline()) {
+        this._verifyCloudRecord(localState.workoutId);
+      }
+      return;
+    }
+
+    // 本地无记录，查本地 workout 缓存
+    const localWorkout = storage.getWorkout();
+    if (localWorkout && localWorkout.status === 'RUNNING' && localWorkout._id) {
+      console.log('从本地任务缓存恢复', localWorkout);
+      this._workoutId = localWorkout._id;
+      this._startTimestamp = localWorkout.start_timestamp || Date.now();
+      this.setData({
+        state: 'RUNNING',
+        buttonText: '攀登中'
+      });
+      this._startTimer();
+      // 在线则校验
+      if (network.isOnline()) {
+        this._verifyCloudRecord(localWorkout._id);
+      }
+      return;
+    }
+
+    // 第二步：本地无任何记录，尝试云端恢复（5s超时）
+    if (network.isOnline()) {
+      this._reconnectFromCloud();
+    }
+  },
+
+  /**
+   * 从本地快照恢复页面状态
+   */
+  _restoreFromSnapshot(snapshot) {
+    this._workoutId = snapshot.workoutId;
+    this._startTimestamp = snapshot.startTimestamp;
+
+    if (snapshot.currentLocation) {
+      this._currentLocation = snapshot.currentLocation;
+    }
+
+    this.setData({
+      state: 'RUNNING',
+      buttonText: '攀登中',
+      geoStatus: snapshot.geoStatus || 'far',
+      geoText: snapshot.geoText || '恢复中...'
+    });
+
+    this._startTimer();
+    console.log('已从本地快照恢复攀登状态');
+  },
+
+  /**
+   * 异步校验云端记录是否仍有效
+   * 如果云端记录已被终止（比如在其他端操作），则重置本地状态
+   */
+  async _verifyCloudRecord(docId) {
+    try {
+      const db = wx.cloud.database();
+      const { data: record } = await network.withTimeout(
+        db.collection('t_workout').doc(docId).get(),
+        CLOUD_TIMEOUT,
+        '校验云端记录'
+      );
+
+      if (record.status !== 'RUNNING') {
+        console.log('云端记录已非 RUNNING，重置本地状态', record.status);
+        storage.clearWorkout();
+        storage.clearClimbState();
+        this._clearTimer();
+        this._resetToIdle();
+      }
+    } catch (err) {
+      // 校验失败不影响本地状态，下次再试
+      console.warn('云端记录校验失败，保持本地状态', err);
+    }
+  },
+
+  /**
+   * 从云端恢复（5s超时保底）
+   */
   async _reconnectFromCloud() {
     try {
       const openid = await app.getOpenId();
       const db = wx.cloud.database();
 
-      const { data } = await db.collection('t_workout')
-        .where({ _openid: openid, status: 'RUNNING' })
-        .orderBy('start_time', 'desc')
-        .limit(1)
-        .get();
+      const { data } = await network.withTimeout(
+        db.collection('t_workout')
+          .where({ _openid: openid, status: 'RUNNING' })
+          .orderBy('start_time', 'desc')
+          .limit(1)
+          .get(),
+        CLOUD_TIMEOUT,
+        '云端重连查询'
+      );
 
       if (data.length > 0) {
         const record = data[0];
         this._workoutId = record._id;
         this._startTimestamp = new Date(record.start_time).getTime();
 
+        // 写入本地缓存以备下次快速恢复
+        storage.saveWorkout({
+          _id: record._id,
+          status: 'RUNNING',
+          start_timestamp: this._startTimestamp
+        });
+
         this.setData({
           state: 'RUNNING',
           buttonText: '攀登中'
         });
         this._startTimer();
+        this._saveCheckpoint();
         console.log('已从云端恢复任务', record._id);
       }
     } catch (err) {
-      console.error('云端重连失败', err);
+      console.error('云端重连失败（可能超时）', err);
+      // 超时不阻塞页面使用
     }
   },
 
@@ -229,10 +413,14 @@ Page({
       const openid = await app.getOpenId();
       const db = wx.cloud.database();
 
-      const { data: users } = await db.collection('t_user')
-        .where({ _openid: openid })
-        .limit(1)
-        .get();
+      const { data: users } = await network.withTimeout(
+        db.collection('t_user')
+          .where({ _openid: openid })
+          .limit(1)
+          .get(),
+        CLOUD_TIMEOUT,
+        '加载用户数据'
+      );
 
       if (users.length > 0) {
         const user = users[0];
@@ -249,6 +437,7 @@ Page({
       }
     } catch (err) {
       console.error('加载用户数据失败', err);
+      // 超时或断网：保持默认值，不阻塞
     }
   },
 
@@ -264,6 +453,7 @@ Page({
       });
     } catch (err) {
       console.error('天气加载失败', err);
+      // 天气非关键路径，静默失败
     }
   },
 
@@ -281,6 +471,7 @@ Page({
 
   /**
    * 开始攀登 - 创建云端记录
+   * 离线保底：先本地创建临时记录，联网后同步
    */
   async _startWorkout() {
     if (!this._currentLocation && !app.TEST_MODE) {
@@ -290,104 +481,241 @@ Page({
 
     wx.showLoading({ title: '准备中...' });
 
+    const loc = this._currentLocation || { latitude: 0, longitude: 0, altitude: 0 };
+    const startTimestamp = Date.now();
+
     try {
       const openid = await app.getOpenId();
       const db = wx.cloud.database();
-      const loc = this._currentLocation || { latitude: 0, longitude: 0, altitude: 0 };
 
-      const { _id } = await db.collection('t_workout').add({
-        data: {
-          _openid: openid,
-          status: 'RUNNING',
-          start_time: db.serverDate(),
-          end_time: null,
-          duration_sec: 0,
-          start_loc: { latitude: loc.latitude, longitude: loc.longitude },
-          end_loc: null,
-          start_alt: loc.altitude || 0,
-          end_alt: 0,
-          altitude_samples: [],
-          is_anonymous: !(app.globalData.userInfo && app.globalData.userInfo.identity === 'HONOR'),
-          is_valid: false,
-          validation_flags: [],
-          appeal_status: 'NONE'
-        }
-      });
+      const { _id } = await network.withTimeout(
+        db.collection('t_workout').add({
+          data: {
+            _openid: openid,
+            status: 'RUNNING',
+            start_time: db.serverDate(),
+            end_time: null,
+            duration_sec: 0,
+            start_loc: { latitude: loc.latitude, longitude: loc.longitude },
+            end_loc: null,
+            start_alt: loc.altitude || 0,
+            end_alt: 0,
+            altitude_samples: [],
+            is_anonymous: !(app.globalData.userInfo && app.globalData.userInfo.identity === 'HONOR'),
+            is_valid: false,
+            validation_flags: [],
+            appeal_status: 'NONE'
+          }
+        }),
+        CLOUD_TIMEOUT,
+        '创建攀登记录'
+      );
 
       this._workoutId = _id;
-      this._startTimestamp = Date.now();
+      this._startTimestamp = startTimestamp;
 
-      storage.saveWorkout({ _id, status: 'RUNNING', start_timestamp: this._startTimestamp });
-
-      this.setData({
-        state: 'RUNNING',
-        buttonText: '攀登中',
-        buttonEnabled: false
-      });
-
-      this._startTimer();
+      storage.saveWorkout({ _id, status: 'RUNNING', start_timestamp: startTimestamp });
+      this._onWorkoutStarted();
       wx.hideLoading();
       wx.showToast({ title: '攀登开始！', icon: 'none' });
+
     } catch (err) {
       wx.hideLoading();
-      console.error('创建记录失败', err);
-      wx.showToast({ title: '启动失败，请重试', icon: 'none' });
+
+      // 网络失败保底：本地启动计时，记录待同步
+      if (!network.isOnline() || err.message.includes('超时')) {
+        console.warn('云端创建失败，启用本地保底模式', err);
+        const tempId = 'LOCAL_' + Date.now();
+        this._workoutId = tempId;
+        this._startTimestamp = startTimestamp;
+
+        storage.saveWorkout({
+          _id: tempId,
+          status: 'RUNNING',
+          start_timestamp: startTimestamp,
+          isLocal: true,
+          startLoc: { latitude: loc.latitude, longitude: loc.longitude },
+          startAlt: loc.altitude || 0
+        });
+
+        this._onWorkoutStarted();
+        wx.showToast({ title: '离线模式，攀登开始', icon: 'none' });
+      } else {
+        console.error('创建记录失败', err);
+        wx.showToast({ title: '启动失败，请重试', icon: 'none' });
+      }
     }
   },
 
   /**
+   * 开始攀登后的通用初始化
+   */
+  _onWorkoutStarted() {
+    this.setData({
+      state: 'RUNNING',
+      buttonText: '攀登中',
+      buttonEnabled: false
+    });
+    this._startTimer();
+    this._saveCheckpoint();
+  },
+
+  /**
    * 到达终点 - 更新云端记录
+   * 弱网容错：缓存到达数据，网络恢复后自动同步
    */
   async _arrivedWorkout() {
     if (!this._workoutId) return;
 
     wx.showLoading({ title: '确认中...' });
 
+    const loc = this._currentLocation || { latitude: 0, longitude: 0, altitude: 0 };
+    const samples = storage.getSamples();
+
+    const arrivalData = {
+      workoutId: this._workoutId,
+      endLoc: { latitude: loc.latitude, longitude: loc.longitude },
+      endAlt: loc.altitude || 0,
+      samples: samples,
+      isLocal: this._workoutId.startsWith('LOCAL_')
+    };
+
+    this._clearTimer();
+
+    // 先更新本地状态，让用户看到反馈
+    this.setData({
+      state: 'ARRIVED',
+      buttonEnabled: false,
+      buttonText: '校验中...',
+      geoText: '已到达白云洞主洞平台'
+    });
+
+    wx.hideLoading();
+
+    // 尝试云端同步
+    if (network.isOnline()) {
+      await this._syncArrivalToCloud(arrivalData);
+    } else {
+      // 离线：缓存到达数据，等网络恢复
+      console.warn('离线状态，缓存到达数据等待同步');
+      this._pendingArrivalData = arrivalData;
+      storage.saveWorkout({
+        _id: this._workoutId,
+        status: 'ARRIVED',
+        start_timestamp: this._startTimestamp,
+        arrivalData: arrivalData
+      });
+      wx.showToast({ title: '已缓存，联网后自动同步', icon: 'none', duration: 3000 });
+    }
+  },
+
+  /**
+   * 将到达数据同步到云端
+   */
+  async _syncArrivalToCloud(arrivalData) {
     try {
       const db = wx.cloud.database();
-      const loc = this._currentLocation || { latitude: 0, longitude: 0, altitude: 0 };
-      const samples = storage.getSamples();
 
-      await db.collection('t_workout').doc(this._workoutId).update({
-        data: {
-          status: 'ARRIVED',
-          end_time: db.serverDate(),
-          end_loc: { latitude: loc.latitude, longitude: loc.longitude },
-          end_alt: loc.altitude || 0,
-          altitude_samples: samples
-        }
-      });
+      // 如果是本地创建的记录，先同步创建到云端
+      if (arrivalData.isLocal) {
+        const openid = await app.getOpenId();
+        const localWorkout = storage.getWorkout();
 
-      this._clearTimer();
+        const { _id } = await network.withTimeout(
+          db.collection('t_workout').add({
+            data: {
+              _openid: openid,
+              status: 'ARRIVED',
+              start_time: new Date(this._startTimestamp),
+              end_time: db.serverDate(),
+              start_loc: localWorkout.startLoc || { latitude: 0, longitude: 0 },
+              end_loc: arrivalData.endLoc,
+              start_alt: localWorkout.startAlt || 0,
+              end_alt: arrivalData.endAlt,
+              altitude_samples: arrivalData.samples,
+              is_anonymous: !(app.globalData.userInfo && app.globalData.userInfo.identity === 'HONOR'),
+              is_valid: false,
+              validation_flags: [],
+              appeal_status: 'NONE'
+            }
+          }),
+          CLOUD_TIMEOUT,
+          '同步本地记录到云端'
+        );
+
+        // 更新 workoutId 为真实的云端 ID
+        this._workoutId = _id;
+        arrivalData.workoutId = _id;
+        console.log('本地记录已同步到云端', _id);
+
+      } else {
+        // 正常云端记录，更新到达数据
+        await network.withTimeout(
+          db.collection('t_workout').doc(arrivalData.workoutId).update({
+            data: {
+              status: 'ARRIVED',
+              end_time: db.serverDate(),
+              end_loc: arrivalData.endLoc,
+              end_alt: arrivalData.endAlt,
+              altitude_samples: arrivalData.samples
+            }
+          }),
+          CLOUD_TIMEOUT,
+          '更新到达数据'
+        );
+      }
+
+      // 清除待提交缓存
+      this._pendingArrivalData = null;
       storage.clearWorkout();
 
-      this.setData({
-        state: 'ARRIVED',
-        buttonEnabled: false,
-        buttonText: '校验中...',
-        geoText: '已到达白云洞主洞平台'
-      });
-
-      wx.hideLoading();
-
-      // 调用云函数执行服务端三重校验
+      // 调用校验
       this._validateAndComplete();
+
     } catch (err) {
-      wx.hideLoading();
-      console.error('更新记录失败', err);
-      wx.showToast({ title: '提交失败，请重试', icon: 'none' });
+      console.error('云端同步到达数据失败', err);
+
+      // 加入待同步队列
+      if (!arrivalData.isLocal) {
+        network.addPendingSync({
+          type: 'UPDATE_WORKOUT',
+          data: {
+            docId: arrivalData.workoutId,
+            updateData: {
+              status: 'ARRIVED',
+              end_time: new Date(),
+              end_loc: arrivalData.endLoc,
+              end_alt: arrivalData.endAlt,
+              altitude_samples: arrivalData.samples
+            }
+          }
+        });
+      }
+
+      // 缓存到达数据
+      this._pendingArrivalData = arrivalData;
+      wx.showToast({ title: '同步失败，网络恢复后自动重试', icon: 'none', duration: 3000 });
     }
   },
 
   /**
    * 调用 validateRecord 云函数进行服务端校验
+   * 带 5s 超时 + 重试
    */
   async _validateAndComplete() {
     try {
-      const { result } = await wx.cloud.callFunction({
-        name: 'validateRecord',
-        data: { workoutId: this._workoutId }
-      });
+      const { result } = await network.withRetry(
+        () => network.withTimeout(
+          wx.cloud.callFunction({
+            name: 'validateRecord',
+            data: { workoutId: this._workoutId }
+          }),
+          CLOUD_TIMEOUT,
+          '记录校验'
+        ),
+        1, // 失败后再试1次
+        2000
+      );
 
       if (result.success) {
         this.setData({ state: result.status });
@@ -413,13 +741,32 @@ Page({
       }
     } catch (err) {
       console.error('校验云函数调用失败', err);
-      wx.showToast({ title: '校验失败，请稍后重试', icon: 'none' });
+
+      // 校验失败，加入待同步队列稍后重试
+      network.addPendingSync({
+        type: 'CALL_FUNCTION',
+        data: {
+          name: 'validateRecord',
+          params: { workoutId: this._workoutId }
+        }
+      });
+
+      wx.showModal({
+        title: '网络不稳定',
+        content: '记录已保存，校验结果将在网络恢复后更新',
+        showCancel: false
+      });
+
+      setTimeout(() => this._resetToIdle(), 500);
     }
   },
 
   _resetToIdle() {
     this._workoutId = null;
     this._startTimestamp = null;
+    this._pendingArrivalData = null;
+
+    storage.clearClimbState();
 
     this.setData({
       state: 'IDLE',
@@ -434,6 +781,34 @@ Page({
     this._loadUserStats();
   },
 
+  // ========== 状态检查点 ==========
+
+  /**
+   * 保存状态快照到本地
+   * 计时中每60秒自动调用一次 + 状态变更/切后台时调用
+   */
+  _saveCheckpoint() {
+    if (this.data.state !== 'RUNNING') return;
+
+    storage.saveClimbState({
+      state: 'RUNNING',
+      workoutId: this._workoutId,
+      startTimestamp: this._startTimestamp,
+      elapsed: this.data.elapsed,
+      geoStatus: this.data.geoStatus,
+      geoText: this.data.geoText,
+      currentLocation: this._currentLocation
+        ? {
+            latitude: this._currentLocation.latitude,
+            longitude: this._currentLocation.longitude,
+            altitude: this._currentLocation.altitude
+          }
+        : null
+    });
+
+    console.log('已保存状态检查点');
+  },
+
   // ========== 计时器 ==========
 
   _startTimer() {
@@ -444,6 +819,11 @@ Page({
         elapsed,
         elapsedText: timeUtil.formatDuration(elapsed)
       });
+
+      // 每60秒触发一次检查点
+      if (elapsed % CHECKPOINT_INTERVAL === 0 && elapsed > 0) {
+        this._saveCheckpoint();
+      }
     }, 1000);
   },
 

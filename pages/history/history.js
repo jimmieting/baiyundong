@@ -2,18 +2,23 @@
  * 历史记录列表页
  * 按日期倒序展示个人所有攀登记录
  * 支持分页加载
+ * Phase 6: 5s超时 + 本地缓存 + 离线友好
  */
 const app = getApp();
 const timeUtil = require('../../utils/time');
+const network = require('../../utils/network');
 
 const PAGE_SIZE = 20;
+const CACHE_KEY = 'history_cache';
+const CLOUD_TIMEOUT = 5000;
 
 Page({
   data: {
     list: [],
     loading: true,
     empty: false,
-    hasMore: true
+    hasMore: true,
+    loadError: false
   },
 
   _page: 0,
@@ -35,13 +40,13 @@ Page({
   },
 
   /**
-   * 加载记录
+   * 加载记录（带5s超时 + 本地缓存兜底）
    * @param {boolean} refresh 是否重新加载
    */
   async _loadRecords(refresh) {
     if (refresh) {
       this._page = 0;
-      this.setData({ list: [], loading: true, empty: false, hasMore: true });
+      this.setData({ list: [], loading: true, empty: false, hasMore: true, loadError: false });
     } else {
       this.setData({ loading: true });
     }
@@ -50,12 +55,16 @@ Page({
       const openid = await app.getOpenId();
       const db = wx.cloud.database();
 
-      const { data } = await db.collection('t_workout')
-        .where({ _openid: openid })
-        .orderBy('start_time', 'desc')
-        .skip(this._page * PAGE_SIZE)
-        .limit(PAGE_SIZE)
-        .get();
+      const { data } = await network.withTimeout(
+        db.collection('t_workout')
+          .where({ _openid: openid })
+          .orderBy('start_time', 'desc')
+          .skip(this._page * PAGE_SIZE)
+          .limit(PAGE_SIZE)
+          .get(),
+        CLOUD_TIMEOUT,
+        '历史记录查询'
+      );
 
       const formatted = data.map(record => {
         const statusMap = {
@@ -82,13 +91,65 @@ Page({
         list: newList,
         loading: false,
         empty: newList.length === 0,
-        hasMore: data.length === PAGE_SIZE
+        hasMore: data.length === PAGE_SIZE,
+        loadError: false
       });
 
       this._page++;
+
+      // 缓存首页数据
+      if (refresh && newList.length > 0) {
+        this._saveCache(newList);
+      }
     } catch (err) {
       console.error('加载历史记录失败', err);
-      this.setData({ loading: false });
+
+      // 首次加载失败，尝试本地缓存
+      if (refresh) {
+        const cached = this._loadCache();
+        if (cached && cached.length > 0) {
+          this.setData({
+            list: cached,
+            loading: false,
+            empty: false,
+            hasMore: false,
+            loadError: true
+          });
+        } else {
+          this.setData({ loading: false, empty: true, loadError: true });
+        }
+      } else {
+        this.setData({ loading: false, loadError: true });
+        wx.showToast({ title: '加载失败，请重试', icon: 'none' });
+      }
+    }
+  },
+
+  /**
+   * 缓存首页数据
+   */
+  _saveCache(list) {
+    try {
+      wx.setStorageSync(CACHE_KEY, {
+        list: list.slice(0, PAGE_SIZE),
+        savedAt: Date.now()
+      });
+    } catch (e) {
+      // 静默失败
+    }
+  },
+
+  /**
+   * 读取缓存（30分钟有效期）
+   */
+  _loadCache() {
+    try {
+      const cache = wx.getStorageSync(CACHE_KEY);
+      if (!cache) return null;
+      if (Date.now() - cache.savedAt > 30 * 60 * 1000) return null;
+      return cache.list;
+    } catch (e) {
+      return null;
     }
   },
 

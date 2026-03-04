@@ -22,6 +22,20 @@
   opacity: 0.5;
 }
 
+/* ========== 离线提示 ========== */
+.offline-hint {
+  text-align: center;
+  padding: 12rpx 24rpx;
+  margin-bottom: 16rpx;
+  background: rgba(255, 77, 79, 0.1);
+  border-radius: 12rpx;
+}
+
+.offline-hint-text {
+  font-size: 24rpx;
+  color: var(--color-warning, #FF4D4F);
+}
+
 /* ========== 记录卡片 ========== */
 .record-card {
   margin-bottom: 20rpx;

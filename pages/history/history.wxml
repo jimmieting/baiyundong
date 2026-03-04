@@ -7,11 +7,16 @@
     <text class="text-l3">加载中...</text>
   </view>
 
+  <!-- 弱网提示 -->
+  <view class="offline-hint" wx:if="{{loadError && list.length > 0}}">
+    <text class="offline-hint-text">网络不佳，显示缓存数据</text>
+  </view>
+
   <!-- 空态 -->
   <view class="empty-tip" wx:if="{{empty && !loading}}">
     <text class="empty-icon">🏔</text>
-    <text class="text-l3">还没有攀登记录</text>
-    <text class="text-l3" style="margin-top: 8rpx;">去攀登页开始你的第一次挑战吧</text>
+    <text class="text-l3">{{loadError ? '网络不佳，下拉刷新重试' : '还没有攀登记录'}}</text>
+    <text class="text-l3" style="margin-top: 8rpx;" wx:if="{{!loadError}}">去攀登页开始你的第一次挑战吧</text>
   </view>
 
   <!-- 记录列表 -->

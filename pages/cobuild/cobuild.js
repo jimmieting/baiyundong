@@ -1,8 +1,12 @@
 /**
  * 共建页
  * 文化卡片 + 共建者名录 + 支持/反馈半屏模态框
+ * Phase 6: 5s超时 + 本地兜底
  */
 const app = getApp();
+const network = require('../../utils/network');
+
+const CLOUD_TIMEOUT = 5000;
 
 Page({
   data: {
@@ -41,11 +45,15 @@ Page({
   async _loadCultureCards() {
     try {
       const db = wx.cloud.database();
-      const { data } = await db.collection('t_culture')
-        .where({ type: 'CARD', is_active: true })
-        .orderBy('priority', 'desc')
-        .limit(10)
-        .get();
+      const { data } = await network.withTimeout(
+        db.collection('t_culture')
+          .where({ type: 'CARD', is_active: true })
+          .orderBy('priority', 'desc')
+          .limit(10)
+          .get(),
+        CLOUD_TIMEOUT,
+        '文化卡片查询'
+      );
 
       if (data.length > 0) {
         this.setData({ cultureCards: data });
@@ -66,11 +74,15 @@ Page({
   async _loadBuilders() {
     try {
       const db = wx.cloud.database();
-      const { data } = await db.collection('t_cobuilder')
-        .where({ is_visible: true })
-        .orderBy('honor_level', 'desc')
-        .limit(100)
-        .get();
+      const { data } = await network.withTimeout(
+        db.collection('t_cobuilder')
+          .where({ is_visible: true })
+          .orderBy('honor_level', 'desc')
+          .limit(100)
+          .get(),
+        CLOUD_TIMEOUT,
+        '共建者名录查询'
+      );
 
       this.setData({ builders: data, buildersLoading: false });
     } catch (err) {
@@ -118,17 +130,21 @@ Page({
       const openid = await app.getOpenId();
       const db = wx.cloud.database();
 
-      await db.collection('t_feedback').add({
-        data: {
-          _openid: openid,
-          type: 'BUG',
-          content: content,
-          workout_id: '',
-          evidence_images: [],
-          status: 'PENDING',
-          created_at: db.serverDate()
-        }
-      });
+      await network.withTimeout(
+        db.collection('t_feedback').add({
+          data: {
+            _openid: openid,
+            type: 'BUG',
+            content: content,
+            workout_id: '',
+            evidence_images: [],
+            status: 'PENDING',
+            created_at: db.serverDate()
+          }
+        }),
+        CLOUD_TIMEOUT,
+        '提交反馈'
+      );
 
       this.setData({
         feedbackContent: '',

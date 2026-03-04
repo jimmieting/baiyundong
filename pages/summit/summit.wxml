@@ -20,6 +20,11 @@
     </view>
   </view>
 
+  <!-- 离线/弱网提示 -->
+  <view class="offline-hint" wx:if="{{loadError}}">
+    <text class="offline-hint-text">网络不佳，显示缓存数据</text>
+  </view>
+
   <!-- 排行列表 -->
   <scroll-view class="rank-list" scroll-y>
     <!-- 加载中 -->
@@ -30,8 +35,8 @@
     <!-- 空态 -->
     <view class="empty-tip" wx:if="{{empty && !loading}}">
       <text class="empty-icon">⛰</text>
-      <text class="text-l3">暂无挑战记录</text>
-      <text class="text-l3" style="margin-top: 8rpx;">成为第一个登顶者吧</text>
+      <text class="text-l3">{{loadError ? '网络不佳，请下拉刷新' : '暂无挑战记录'}}</text>
+      <text class="text-l3" style="margin-top: 8rpx;" wx:if="{{!loadError}}">成为第一个登顶者吧</text>
     </view>
 
     <!-- 榜单条目 -->

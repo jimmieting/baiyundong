@@ -1,9 +1,13 @@
 /**
  * 记录详情页
  * 展示单次攀登完整数据 + 海拔折线 + Canvas 2D 分享海报
+ * Phase 6: 5s超时保底
  */
 const app = getApp();
 const timeUtil = require('../../utils/time');
+const network = require('../../utils/network');
+
+const CLOUD_TIMEOUT = 5000;
 
 Page({
   data: {
@@ -47,9 +51,13 @@ Page({
 
     try {
       const db = wx.cloud.database();
-      const { data: record } = await db.collection('t_workout')
-        .doc(this._recordId)
-        .get();
+      const { data: record } = await network.withTimeout(
+        db.collection('t_workout')
+          .doc(this._recordId)
+          .get(),
+        CLOUD_TIMEOUT,
+        '记录详情查询'
+      );
 
       // 计算展示数据
       const durationSec = record.duration_sec || 0;

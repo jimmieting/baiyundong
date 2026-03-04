@@ -2,6 +2,7 @@
  * 白云洞登山局 - 主程序入口
  * 核心哲学：向上的秩序 (Order Upwards)
  */
+const network = require('./utils/network');
 
 App({
   // ========== 全局常量 ==========
@@ -84,6 +85,9 @@ App({
     } catch (e) {
       console.error('获取系统信息失败', e);
     }
+
+    // 初始化网络状态监听（Phase 6）
+    network.init();
 
     // 获取 OpenID
     this._initOpenId();
