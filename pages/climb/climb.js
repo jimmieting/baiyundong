@@ -6,6 +6,7 @@ const app = getApp();
 const geo = require('../../utils/geo');
 const timeUtil = require('../../utils/time');
 const storage = require('../../utils/storage');
+const identity = require('../../utils/identity');
 
 Page({
   data: {
@@ -289,7 +290,7 @@ Page({
           start_alt: loc.altitude || 0,
           end_alt: 0,
           altitude_samples: [],
-          is_anonymous: true,
+          is_anonymous: !(app.globalData.userInfo && app.globalData.userInfo.identity === 'HONOR'),
           is_valid: false,
           validation_flags: [],
           appeal_status: 'NONE'
@@ -352,8 +353,8 @@ Page({
 
       wx.hideLoading();
 
-      // 临时：直接完成（Phase 3 替换为 validateRecord 云函数）
-      this._completeWorkout();
+      // 调用云函数执行服务端三重校验
+      this._validateAndComplete();
     } catch (err) {
       wx.hideLoading();
       console.error('更新记录失败', err);
@@ -362,30 +363,40 @@ Page({
   },
 
   /**
-   * 完成攀登（临时逻辑，Phase 3 替换）
+   * 调用 validateRecord 云函数进行服务端校验
    */
-  async _completeWorkout() {
+  async _validateAndComplete() {
     try {
-      const db = wx.cloud.database();
-      const elapsed = this.data.elapsed;
+      const { result } = await wx.cloud.callFunction({
+        name: 'validateRecord',
+        data: { workoutId: this._workoutId }
+      });
 
-      await db.collection('t_workout').doc(this._workoutId).update({
-        data: {
-          status: 'COMPLETED',
-          duration_sec: elapsed,
-          is_valid: true
+      if (result.success) {
+        this.setData({ state: result.status });
+
+        if (result.isValid) {
+          wx.showToast({ title: '挑战成功！', icon: 'success' });
+        } else {
+          wx.showModal({
+            title: '记录异常',
+            content: result.reasons.join('；'),
+            showCancel: false
+          });
         }
-      });
 
-      this.setData({ state: 'COMPLETED' });
+        // 跳转到记录详情
+        wx.navigateTo({
+          url: `/pages/record/record?id=${this._workoutId}`
+        });
 
-      wx.navigateTo({
-        url: `/pages/record/record?id=${this._workoutId}`
-      });
-
-      setTimeout(() => this._resetToIdle(), 500);
+        setTimeout(() => this._resetToIdle(), 500);
+      } else {
+        wx.showToast({ title: '校验失败：' + result.error, icon: 'none' });
+      }
     } catch (err) {
-      console.error('完成记录失败', err);
+      console.error('校验云函数调用失败', err);
+      wx.showToast({ title: '校验失败，请稍后重试', icon: 'none' });
     }
   },
 

@@ -1,24 +1,21 @@
 /**
  * 巅峰页 - 排行榜
  * 今日榜 / 本月榜 / 历史榜
- *
- * Phase 1: 页面骨架 + 静态 UI
- * Phase 3: 接入云函数查询
+ * 通过 getLeaderboard 云函数查询
  */
 const app = getApp();
+const timeUtil = require('../../utils/time');
 
 Page({
   data: {
-    // Tab 切换
-    activeTab: 0, // 0=今日 1=本月 2=历史
+    activeTab: 0,
     tabs: ['今日榜', '本月榜', '历史榜'],
+    modes: ['today', 'month', 'all'],
 
-    // 排行数据
     list: [],
     loading: true,
     empty: false,
 
-    // 系统
     statusBarHeight: 0
   },
 
@@ -28,8 +25,7 @@ Page({
       this.setData({ statusBarHeight: systemInfo.statusBarHeight || 44 });
     }
 
-    // Phase 3 将实现数据加载
-    this.setData({ loading: false, empty: true });
+    this._loadLeaderboard(0);
   },
 
   onShow() {
@@ -39,11 +35,51 @@ Page({
   },
 
   /**
+   * 下拉刷新
+   */
+  onPullDownRefresh() {
+    this._loadLeaderboard(this.data.activeTab).then(() => {
+      wx.stopPullDownRefresh();
+    });
+  },
+
+  /**
    * 切换 Tab
    */
   switchTab(e) {
     const index = e.currentTarget.dataset.index;
     this.setData({ activeTab: index });
-    // Phase 3: this._loadLeaderboard(index);
+    this._loadLeaderboard(index);
+  },
+
+  /**
+   * 从云函数加载排行榜数据
+   */
+  async _loadLeaderboard(tabIndex) {
+    this.setData({ loading: true, empty: false, list: [] });
+
+    const mode = this.data.modes[tabIndex];
+
+    try {
+      const { result } = await wx.cloud.callFunction({
+        name: 'getLeaderboard',
+        data: { mode, limit: 50 }
+      });
+
+      if (result.success && result.list.length > 0) {
+        const list = result.list.map(item => ({
+          ...item,
+          durationText: timeUtil.formatDuration(item.duration_sec),
+          dateText: timeUtil.formatDateShort(item.start_time)
+        }));
+
+        this.setData({ list, loading: false, empty: false });
+      } else {
+        this.setData({ list: [], loading: false, empty: true });
+      }
+    } catch (err) {
+      console.error('加载排行榜失败', err);
+      this.setData({ loading: false, empty: true });
+    }
   }
 });
