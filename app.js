@@ -54,8 +54,8 @@ App({
     '天路漫漫，心志为灯。'
   ],
 
-  // 测试模式（开发阶段为 true，上线前改为 false）
-  TEST_MODE: true,
+  // 测试模式（true=跳过地理围栏校验，仅用于开发调试）
+  TEST_MODE: false,
 
   // ========== 全局状态 ==========
   globalData: {

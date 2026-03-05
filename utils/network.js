@@ -26,11 +26,11 @@ function init() {
     _isOnline = res.isConnected;
     _networkType = res.networkType;
 
-    console.log(`网络状态变化: ${_networkType}, 在线: ${_isOnline}`);
+    // 网络状态变化
 
     // 从离线恢复到在线，触发所有恢复回调
     if (wasOffline && _isOnline) {
-      console.log('网络恢复，触发同步回调...');
+      // 网络恢复，触发同步
       _flushPendingSync();
       _notifyListeners();
     }
@@ -87,7 +87,7 @@ function addPendingSync(operation) {
       retryCount: 0
     });
     wx.setStorageSync(PENDING_KEY, queue);
-    console.log('已加入待同步队列', operation.type);
+    // 已加入待同步队列
   } catch (e) {
     console.error('加入待同步队列失败', e);
   }
@@ -135,7 +135,7 @@ async function _flushPendingSync() {
   const queue = getPendingSync();
   if (queue.length === 0) return;
 
-  console.log(`开始同步 ${queue.length} 条待处理操作`);
+  // 开始同步待处理操作
 
   // 逐条处理，成功则移除
   for (let i = queue.length - 1; i >= 0; i--) {
@@ -147,14 +147,14 @@ async function _flushPendingSync() {
           data: op.data.updateData
         });
         removePendingAt(i);
-        console.log('同步成功', op.type, op.data.docId);
+        // 同步成功
       } else if (op.type === 'CALL_FUNCTION') {
         await wx.cloud.callFunction({
           name: op.data.name,
           data: op.data.params
         });
         removePendingAt(i);
-        console.log('同步成功', op.type, op.data.name);
+        // 同步成功
       }
     } catch (err) {
       console.error('同步失败，保留在队列中', op.type, err);
@@ -213,7 +213,7 @@ async function withRetry(fn, retries = 2, delay = 1000) {
       return await fn();
     } catch (err) {
       if (i === retries) throw err;
-      console.log(`重试第${i + 1}次，${delay}ms后...`);
+      // 重试中
       await new Promise(r => setTimeout(r, delay));
     }
   }

@@ -1,7 +1,7 @@
 <!--
   历史记录列表页
 -->
-<view class="page">
+<view class="page page-slide-up">
   <!-- 加载中 -->
   <view class="loading-tip" wx:if="{{loading}}">
     <text class="text-l3">加载中...</text>

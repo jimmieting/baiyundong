@@ -133,6 +133,28 @@ page {
   50% { transform: scale(1.05); }
 }
 
+/* ========== 页面切换动画 ========== */
+/* 所有页面根容器统一 0.3s 淡入 */
+.page {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+/* 向上滑入（用于 navigateTo 页面） */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(40rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
 /* ========== 安全区域 ========== */
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);

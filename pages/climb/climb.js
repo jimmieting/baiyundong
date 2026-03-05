@@ -233,12 +233,12 @@ Page({
 
   _registerNetworkRecovery() {
     this._removeNetworkListener = network.onRecover(() => {
-      console.log('攀登页：网络恢复');
+      // 网络恢复
       this.setData({ isOffline: false });
 
       // 如果有待提交的到达数据，自动重试
       if (this._pendingArrivalData) {
-        console.log('自动重试到达提交...');
+        // 自动重试到达提交
         this._syncArrivalToCloud(this._pendingArrivalData);
       }
 
@@ -264,7 +264,7 @@ Page({
           CLOUD_TIMEOUT,
           '同步采样数据'
         );
-        console.log('采样数据已同步到云端');
+        // 采样数据同步成功
       }
     } catch (err) {
       console.warn('采样数据同步失败，下次恢复再试', err);
@@ -281,7 +281,7 @@ Page({
     // 第一步：本地快照恢复（瞬时完成）
     const localState = storage.getClimbState();
     if (localState && localState.state === 'RUNNING' && localState.workoutId) {
-      console.log('从本地快照恢复', localState);
+      // 从本地快照恢复
       this._restoreFromSnapshot(localState);
       // 在线则异步校验云端记录是否仍然有效
       if (network.isOnline()) {
@@ -293,7 +293,7 @@ Page({
     // 本地无记录，查本地 workout 缓存
     const localWorkout = storage.getWorkout();
     if (localWorkout && localWorkout.status === 'RUNNING' && localWorkout._id) {
-      console.log('从本地任务缓存恢复', localWorkout);
+      // 从本地任务缓存恢复
       this._workoutId = localWorkout._id;
       this._startTimestamp = localWorkout.start_timestamp || Date.now();
       this.setData({
@@ -333,7 +333,7 @@ Page({
     });
 
     this._startTimer();
-    console.log('已从本地快照恢复攀登状态');
+    // 本地快照恢复完成
   },
 
   /**
@@ -350,7 +350,7 @@ Page({
       );
 
       if (record.status !== 'RUNNING') {
-        console.log('云端记录已非 RUNNING，重置本地状态', record.status);
+        // 云端记录已非 RUNNING，重置本地状态
         storage.clearWorkout();
         storage.clearClimbState();
         this._clearTimer();
@@ -398,7 +398,7 @@ Page({
         });
         this._startTimer();
         this._saveCheckpoint();
-        console.log('已从云端恢复任务', record._id);
+        // 云端恢复成功
       }
     } catch (err) {
       console.error('云端重连失败（可能超时）', err);
@@ -646,7 +646,7 @@ Page({
         // 更新 workoutId 为真实的云端 ID
         this._workoutId = _id;
         arrivalData.workoutId = _id;
-        console.log('本地记录已同步到云端', _id);
+        // 本地记录已同步到云端
 
       } else {
         // 正常云端记录，更新到达数据
@@ -806,7 +806,7 @@ Page({
         : null
     });
 
-    console.log('已保存状态检查点');
+    // 检查点已保存
   },
 
   // ========== 计时器 ==========

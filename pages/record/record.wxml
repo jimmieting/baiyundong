@@ -2,7 +2,7 @@
   记录详情页
   成绩 + 数据卡片 + 海拔折线 + 操作按钮
 -->
-<view class="page">
+<view class="page page-slide-up">
   <view class="loading-tip" wx:if="{{loading}}">
     <text class="text-l3">加载中...</text>
   </view>
