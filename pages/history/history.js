@@ -18,7 +18,8 @@ Page({
     loading: true,
     empty: false,
     hasMore: true,
-    loadError: false
+    loadError: false,
+    errorType: ''    // 'deploy' 或 'network'
   },
 
   _page: 0,
@@ -104,6 +105,11 @@ Page({
     } catch (err) {
       console.error('加载历史记录失败', err);
 
+      // 区分云函数未部署和网络问题
+      const errMsg = (err && err.message) || '';
+      const isNotDeployed = errMsg.includes('not found') || errMsg.includes('-404') || errMsg.includes('FunctionName');
+      const errorType = isNotDeployed ? 'deploy' : 'network';
+
       // 首次加载失败，尝试本地缓存
       if (refresh) {
         const cached = this._loadCache();
@@ -113,13 +119,14 @@ Page({
             loading: false,
             empty: false,
             hasMore: false,
-            loadError: true
+            loadError: true,
+            errorType
           });
         } else {
-          this.setData({ loading: false, empty: true, loadError: true });
+          this.setData({ loading: false, empty: true, loadError: true, errorType });
         }
       } else {
-        this.setData({ loading: false, loadError: true });
+        this.setData({ loading: false, loadError: true, errorType });
         wx.showToast({ title: '加载失败，请重试', icon: 'none' });
       }
     }

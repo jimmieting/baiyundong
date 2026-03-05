@@ -9,12 +9,12 @@ const db = cloud.database();
 
 // 校验常量
 const CONSTRAINTS = {
-  MIN_DURATION: 900,
-  MAX_DURATION: 36000,
+  MIN_DURATION: 900,       // 15分钟
+  MAX_DURATION: 10800,     // 3小时
   ALT_EXPECTED: 280,
   ALT_TOLERANCE: 50,
   GEOFENCE_RADIUS: 50,
-  HARD_REJECT_DURATION: 600
+  HARD_REJECT_DURATION: 600  // 10分钟，物理不可能
 };
 
 // 围栏坐标

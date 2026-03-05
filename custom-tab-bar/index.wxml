@@ -1,25 +1,53 @@
 <!--
   自定义底部导航栏
-  中间为 C 位大圆悬浮按钮
+  C 位大圆悬浮 + 凹槽视觉 + CSS 图标
 -->
-<view class="tab-bar {{dimmed ? 'dimmed' : ''}}">
-  <!-- 左：巅峰 -->
-  <view class="tab-item" data-index="0" bindtap="switchTab">
-    <view class="tab-icon {{selected === 0 ? 'active' : ''}}">⛰</view>
-    <text class="tab-text {{selected === 0 ? 'active' : ''}}">巅峰</text>
-  </view>
-
-  <!-- 中：攀登（C位大圆） -->
-  <view class="tab-item center" data-index="1" bindtap="switchTab">
-    <view class="center-button {{selected === 1 ? 'active' : ''}}">
-      <text class="center-icon">▲</text>
+<view class="tab-bar-wrapper {{dimmed ? 'dimmed' : ''}}">
+  <!-- 凹槽背景层 -->
+  <view class="tab-bar-bg">
+    <view class="bg-left"></view>
+    <view class="bg-notch">
+      <view class="notch-curve left-curve"></view>
+      <view class="notch-space"></view>
+      <view class="notch-curve right-curve"></view>
     </view>
-    <text class="tab-text center-text {{selected === 1 ? 'active' : ''}}">攀登</text>
+    <view class="bg-right"></view>
   </view>
 
-  <!-- 右：共建 -->
-  <view class="tab-item" data-index="2" bindtap="switchTab">
-    <view class="tab-icon {{selected === 2 ? 'active' : ''}}">🤝</view>
-    <text class="tab-text {{selected === 2 ? 'active' : ''}}">共建</text>
+  <!-- 导航内容层 -->
+  <view class="tab-bar-content">
+    <!-- 左：巅峰 -->
+    <view class="tab-item" data-index="0" bindtap="switchTab">
+      <!-- CSS 山峰图标 -->
+      <view class="icon-box">
+        <view class="icon-mountain {{selected === 0 ? 'active' : ''}}">
+          <view class="mountain-big"></view>
+          <view class="mountain-small"></view>
+        </view>
+      </view>
+      <text class="tab-label {{selected === 0 ? 'active' : ''}}">巅峰</text>
+    </view>
+
+    <!-- 中：攀登（C位大圆） -->
+    <view class="tab-item center-item" data-index="1" bindtap="switchTab">
+      <view class="center-btn-ring">
+        <view class="center-btn {{selected === 1 ? 'active' : ''}}">
+          <view class="center-arrow-icon"></view>
+        </view>
+      </view>
+      <text class="tab-label center-label {{selected === 1 ? 'active' : ''}}">攀登</text>
+    </view>
+
+    <!-- 右：共建 -->
+    <view class="tab-item" data-index="2" bindtap="switchTab">
+      <!-- CSS 人物图标 -->
+      <view class="icon-box">
+        <view class="icon-people {{selected === 2 ? 'active' : ''}}">
+          <view class="people-head"></view>
+          <view class="people-body"></view>
+        </view>
+      </view>
+      <text class="tab-label {{selected === 2 ? 'active' : ''}}">共建</text>
+    </view>
   </view>
 </view>

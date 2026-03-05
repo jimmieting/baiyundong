@@ -21,6 +21,7 @@ Page({
     loading: true,
     empty: false,
     loadError: false,   // 加载失败标志
+    errorType: '',      // 'deploy' 或 'network'
     isOffline: false,   // 离线标志
 
     statusBarHeight: 0
@@ -67,7 +68,7 @@ Page({
    * 带 5s 超时 + 本地缓存兜底
    */
   async _loadLeaderboard(tabIndex) {
-    this.setData({ loading: true, empty: false, loadError: false, list: [] });
+    this.setData({ loading: true, empty: false, loadError: false, errorType: '', list: [] });
 
     const mode = this.data.modes[tabIndex];
 
@@ -98,6 +99,11 @@ Page({
     } catch (err) {
       console.error('加载排行榜失败', err);
 
+      // 区分云函数未部署和网络问题
+      const errMsg = (err && err.message) || '';
+      const isNotDeployed = errMsg.includes('not found') || errMsg.includes('-404') || errMsg.includes('FunctionName');
+      const errorType = isNotDeployed ? 'deploy' : 'network';
+
       // 尝试从本地缓存恢复
       const cached = this._loadCache(mode);
       if (cached && cached.length > 0) {
@@ -105,10 +111,11 @@ Page({
           list: cached,
           loading: false,
           empty: false,
-          loadError: true
+          loadError: true,
+          errorType
         });
       } else {
-        this.setData({ loading: false, empty: true, loadError: true });
+        this.setData({ loading: false, empty: true, loadError: true, errorType });
       }
     }
   },

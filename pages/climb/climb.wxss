@@ -23,29 +23,11 @@
 
 /* ========== 环境层 ========== */
 .ambient-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 0;
+  padding: 16rpx 0 24rpx;
 }
 
 .date-text {
-  font-size: 28rpx;
-  color: var(--color-muted);
-}
-
-.weather-info {
-  display: flex;
-  align-items: center;
-  gap: 12rpx;
-}
-
-.weather-icon {
-  font-size: 32rpx;
-}
-
-.weather-temp {
-  font-size: 28rpx;
+  font-size: 26rpx;
   color: var(--color-muted);
 }
 

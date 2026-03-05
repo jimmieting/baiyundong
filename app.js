@@ -55,7 +55,7 @@ App({
   ],
 
   // 测试模式（true=跳过地理围栏校验，仅用于开发调试）
-  TEST_MODE: false,
+  TEST_MODE: true,
 
   // ========== 全局状态 ==========
   globalData: {
@@ -78,10 +78,21 @@ App({
       traceUser: true
     });
 
-    // 获取系统信息
+    // 获取系统信息（使用新版 API，避免 deprecated 警告）
     try {
-      const systemInfo = wx.getSystemInfoSync();
-      this.globalData.systemInfo = systemInfo;
+      const windowInfo = wx.getWindowInfo();
+      const deviceInfo = wx.getDeviceInfo();
+      this.globalData.systemInfo = {
+        statusBarHeight: windowInfo.statusBarHeight,
+        windowWidth: windowInfo.windowWidth,
+        windowHeight: windowInfo.windowHeight,
+        screenWidth: windowInfo.screenWidth,
+        screenHeight: windowInfo.screenHeight,
+        pixelRatio: windowInfo.pixelRatio,
+        safeArea: windowInfo.safeArea,
+        platform: deviceInfo.platform,
+        system: deviceInfo.system
+      };
     } catch (e) {
       console.error('获取系统信息失败', e);
     }

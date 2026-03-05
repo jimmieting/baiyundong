@@ -8,7 +8,6 @@ const geo = require('../../utils/geo');
 const timeUtil = require('../../utils/time');
 const storage = require('../../utils/storage');
 const identity = require('../../utils/identity');
-const weather = require('../../utils/weather');
 const network = require('../../utils/network');
 
 // 常量
@@ -22,8 +21,6 @@ Page({
 
     // 环境层
     dateText: '',
-    weatherIcon: '--',
-    temperature: '--',
 
     // 地理状态条
     geoStatus: 'far',
@@ -49,7 +46,8 @@ Page({
     isOffline: false,
 
     // 系统
-    statusBarHeight: 0
+    statusBarHeight: 0,
+    navBarTop: 0  // 胶囊按钮底部位置，用于顶部安全区
   },
 
   // 非响应式的实例变量
@@ -67,13 +65,31 @@ Page({
       this.setData({ statusBarHeight: systemInfo.statusBarHeight || 44 });
     }
 
+    // 获取胶囊按钮位置，避免内容与右上角按钮重叠
+    try {
+      const menuRect = wx.getMenuButtonBoundingClientRect();
+      // 内容从胶囊底部 + 8px 间距开始
+      this.setData({ navBarTop: menuRect.bottom + 8 });
+    } catch (e) {
+      this.setData({ navBarTop: (this.data.statusBarHeight || 44) + 44 });
+    }
+
     this.setData({ isOffline: !network.isOnline() });
+
+    // 测试模式：立即就绪，不依赖 GPS
+    if (app.TEST_MODE) {
+      this.setData({
+        buttonEnabled: true,
+        buttonText: '开始攀登',
+        geoStatus: 'inside',
+        geoText: '测试模式 · 围栏已跳过'
+      });
+    }
 
     this._initDate();
     this._initLocation();
     this._tryReconnect();   // 优先本地恢复，再尝试云端
     this._loadUserStats();
-    this._loadWeather();
     this._registerNetworkRecovery();
   },
 
@@ -193,11 +209,12 @@ Page({
       );
       const inZone = dist <= geofence.RADIUS;
 
+      const isTest = app.TEST_MODE;
       this.setData({
-        geoStatus: geo.getGeoStatus(dist),
-        geoText: geo.getGeoText(dist, 'start'),
-        buttonEnabled: inZone || app.TEST_MODE,
-        buttonText: inZone ? '开始攀登' : '等待进入起点'
+        geoStatus: isTest ? 'inside' : geo.getGeoStatus(dist),
+        geoText: isTest ? '测试模式 · 围栏已跳过' : geo.getGeoText(dist, 'start'),
+        buttonEnabled: inZone || isTest,
+        buttonText: (inZone || isTest) ? '开始攀登' : '等待进入起点'
       });
     } else if (state === 'RUNNING') {
       // 计算到终点的距离
@@ -207,11 +224,12 @@ Page({
       );
       const inZone = dist <= geofence.RADIUS;
 
+      const isTest = app.TEST_MODE;
       this.setData({
-        geoStatus: geo.getGeoStatus(dist),
-        geoText: geo.getGeoText(dist, 'end'),
-        buttonEnabled: inZone || app.TEST_MODE,
-        buttonText: inZone ? '确认到达' : '攀登中'
+        geoStatus: isTest ? 'inside' : geo.getGeoStatus(dist),
+        geoText: isTest ? '测试模式 · 围栏已跳过' : geo.getGeoText(dist, 'end'),
+        buttonEnabled: inZone || isTest,
+        buttonText: (inZone || isTest) ? '确认到达' : '攀登中'
       });
 
       // 采样海拔数据
@@ -278,34 +296,45 @@ Page({
    * 策略：先查本地快照（0延迟），再查云端记录（5s超时）
    */
   async _tryReconnect() {
+    const MAX_STALE_MS = 12 * 60 * 60 * 1000; // 12小时视为过期
+
     // 第一步：本地快照恢复（瞬时完成）
     const localState = storage.getClimbState();
     if (localState && localState.state === 'RUNNING' && localState.workoutId) {
-      // 从本地快照恢复
-      this._restoreFromSnapshot(localState);
-      // 在线则异步校验云端记录是否仍然有效
-      if (network.isOnline()) {
-        this._verifyCloudRecord(localState.workoutId);
+      // 超过12小时，视为废弃记录，直接清除
+      if (localState.startTimestamp && (Date.now() - localState.startTimestamp > MAX_STALE_MS)) {
+        storage.clearClimbState();
+        storage.clearWorkout();
+      } else {
+        this._restoreFromSnapshot(localState);
+        if (network.isOnline()) {
+          this._verifyCloudRecord(localState.workoutId);
+        }
+        return;
       }
-      return;
     }
 
     // 本地无记录，查本地 workout 缓存
     const localWorkout = storage.getWorkout();
     if (localWorkout && localWorkout.status === 'RUNNING' && localWorkout._id) {
-      // 从本地任务缓存恢复
-      this._workoutId = localWorkout._id;
-      this._startTimestamp = localWorkout.start_timestamp || Date.now();
-      this.setData({
-        state: 'RUNNING',
-        buttonText: '攀登中'
-      });
-      this._startTimer();
-      // 在线则校验
-      if (network.isOnline()) {
-        this._verifyCloudRecord(localWorkout._id);
+      // 超过12小时，视为废弃
+      if (localWorkout.start_timestamp && (Date.now() - localWorkout.start_timestamp > MAX_STALE_MS)) {
+        storage.clearWorkout();
+      } else {
+        this._workoutId = localWorkout._id;
+        this._startTimestamp = localWorkout.start_timestamp || Date.now();
+        const isTest = app.TEST_MODE;
+        this.setData({
+          state: 'RUNNING',
+          buttonText: isTest ? '确认到达' : '攀登中',
+          buttonEnabled: isTest
+        });
+        this._startTimer();
+        if (network.isOnline()) {
+          this._verifyCloudRecord(localWorkout._id);
+        }
+        return;
       }
-      return;
     }
 
     // 第二步：本地无任何记录，尝试云端恢复（5s超时）
@@ -325,15 +354,16 @@ Page({
       this._currentLocation = snapshot.currentLocation;
     }
 
+    const isTest = app.TEST_MODE;
     this.setData({
       state: 'RUNNING',
-      buttonText: '攀登中',
+      buttonText: isTest ? '确认到达' : '攀登中',
+      buttonEnabled: isTest,
       geoStatus: snapshot.geoStatus || 'far',
       geoText: snapshot.geoText || '恢复中...'
     });
 
     this._startTimer();
-    // 本地快照恢复完成
   },
 
   /**
@@ -392,13 +422,14 @@ Page({
           start_timestamp: this._startTimestamp
         });
 
+        const isTest = app.TEST_MODE;
         this.setData({
           state: 'RUNNING',
-          buttonText: '攀登中'
+          buttonText: isTest ? '确认到达' : '攀登中',
+          buttonEnabled: isTest
         });
         this._startTimer();
         this._saveCheckpoint();
-        // 云端恢复成功
       }
     } catch (err) {
       console.error('云端重连失败（可能超时）', err);
@@ -438,22 +469,6 @@ Page({
     } catch (err) {
       console.error('加载用户数据失败', err);
       // 超时或断网：保持默认值，不阻塞
-    }
-  },
-
-  // ========== 天气 ==========
-
-  async _loadWeather() {
-    try {
-      // 使用白云洞附近坐标
-      const result = await weather.fetchWeather(26.073, 119.381);
-      this.setData({
-        weatherIcon: result.icon,
-        temperature: result.temp
-      });
-    } catch (err) {
-      console.error('天气加载失败', err);
-      // 天气非关键路径，静默失败
     }
   },
 
@@ -551,10 +566,12 @@ Page({
    * 开始攀登后的通用初始化
    */
   _onWorkoutStarted() {
+    // 测试模式下直接启用"确认到达"按钮，不等定位更新
+    const isTest = app.TEST_MODE;
     this.setData({
       state: 'RUNNING',
-      buttonText: '攀登中',
-      buttonEnabled: false
+      buttonText: isTest ? '确认到达' : '攀登中',
+      buttonEnabled: isTest
     });
     this._startTimer();
     this._saveCheckpoint();
@@ -567,6 +584,50 @@ Page({
   async _arrivedWorkout() {
     if (!this._workoutId) return;
 
+    this._clearTimer();
+    const durationSec = Math.floor((Date.now() - this._startTimestamp) / 1000);
+    const elapsedText = this.data.elapsedText;
+
+    // ===== 测试模式：完全跳过云端，直接出结果 =====
+    if (app.TEST_MODE) {
+      this.setData({ state: 'COMPLETED', buttonEnabled: false, buttonText: '已完成' });
+      storage.clearClimbState();
+      storage.clearWorkout();
+
+      // 尝试写入云端（失败也无所谓）
+      try {
+        const db = wx.cloud.database();
+        if (!this._workoutId.startsWith('LOCAL_')) {
+          await db.collection('t_workout').doc(this._workoutId).update({
+            data: { status: 'COMPLETED', end_time: db.serverDate(), duration_sec: durationSec, is_valid: true, validation_flags: ['TEST_MODE'] }
+          });
+        }
+      } catch (e) {
+        console.warn('测试模式：云端写入跳过', e);
+      }
+
+      // 测试模式完成：也弹出分享引导
+      const testWorkoutId = this._workoutId;
+      wx.showModal({
+        title: '完成！用时 ' + elapsedText,
+        content: '去查看记录并分享成绩吧',
+        confirmText: '去分享',
+        cancelText: '稍后',
+        success: (modalRes) => {
+          if (modalRes.confirm && !testWorkoutId.startsWith('LOCAL_')) {
+            wx.navigateTo({
+              url: `/pages/record/record?id=${testWorkoutId}`
+            });
+          }
+        }
+      });
+      setTimeout(() => {
+        this._resetToIdle();
+      }, 500);
+      return;
+    }
+
+    // ===== 正式模式：完整云端流程 =====
     wx.showLoading({ title: '确认中...' });
 
     const loc = this._currentLocation || { latitude: 0, longitude: 0, altitude: 0 };
@@ -580,9 +641,6 @@ Page({
       isLocal: this._workoutId.startsWith('LOCAL_')
     };
 
-    this._clearTimer();
-
-    // 先更新本地状态，让用户看到反馈
     this.setData({
       state: 'ARRIVED',
       buttonEnabled: false,
@@ -592,11 +650,9 @@ Page({
 
     wx.hideLoading();
 
-    // 尝试云端同步
     if (network.isOnline()) {
       await this._syncArrivalToCloud(arrivalData);
     } else {
-      // 离线：缓存到达数据，等网络恢复
       console.warn('离线状态，缓存到达数据等待同步');
       this._pendingArrivalData = arrivalData;
       storage.saveWorkout({
@@ -694,7 +750,23 @@ Page({
 
       // 缓存到达数据
       this._pendingArrivalData = arrivalData;
-      wx.showToast({ title: '同步失败，网络恢复后自动重试', icon: 'none', duration: 3000 });
+
+      // 区分云函数未部署和网络问题
+      const errMsg = (err && err.message) || '';
+      const isNotDeployed = errMsg.includes('not found') || errMsg.includes('-404') || errMsg.includes('FunctionName');
+
+      if (isNotDeployed) {
+        wx.showModal({
+          title: '云函数/数据库未就绪',
+          content: '请先在微信开发者工具中创建数据库集合 t_workout 并部署全部云函数',
+          showCancel: false
+        });
+      } else {
+        wx.showToast({ title: '同步失败，网络恢复后自动重试', icon: 'none', duration: 3000 });
+      }
+
+      // 3秒后重置状态，避免永远卡在"校验中"
+      setTimeout(() => this._resetToIdle(), 3000);
     }
   },
 
@@ -721,23 +793,40 @@ Page({
         this.setData({ state: result.status });
 
         if (result.isValid) {
-          wx.showToast({ title: '挑战成功！', icon: 'success' });
+          // 校验通过：弹出分享提示，引导用户去记录页生成海报
+          wx.showModal({
+            title: '挑战成功！',
+            content: '太棒了！去分享你的攀登成绩吧',
+            confirmText: '去分享',
+            cancelText: '稍后再说',
+            success: (modalRes) => {
+              wx.navigateTo({
+                url: `/pages/record/record?id=${this._workoutId}`
+              });
+            }
+          });
         } else {
           wx.showModal({
             title: '记录异常',
             content: result.reasons.join('；'),
-            showCancel: false
+            confirmText: '查看详情',
+            showCancel: false,
+            success: () => {
+              wx.navigateTo({
+                url: `/pages/record/record?id=${this._workoutId}`
+              });
+            }
           });
         }
 
-        // 跳转到记录详情
-        wx.navigateTo({
-          url: `/pages/record/record?id=${this._workoutId}`
-        });
-
         setTimeout(() => this._resetToIdle(), 500);
       } else {
-        wx.showToast({ title: '校验失败：' + result.error, icon: 'none' });
+        wx.showModal({
+          title: '校验失败',
+          content: result.error || '服务端返回错误，记录已保存',
+          showCancel: false
+        });
+        setTimeout(() => this._resetToIdle(), 500);
       }
     } catch (err) {
       console.error('校验云函数调用失败', err);
@@ -751,9 +840,14 @@ Page({
         }
       });
 
+      // 区分云函数未部署和网络问题
+      const errMsg = (err && err.message) || '';
+      const isNotDeployed = errMsg.includes('not found') || errMsg.includes('-404') || errMsg.includes('FunctionName');
       wx.showModal({
-        title: '网络不稳定',
-        content: '记录已保存，校验结果将在网络恢复后更新',
+        title: isNotDeployed ? '云函数未部署' : '网络不稳定',
+        content: isNotDeployed
+          ? '请先在微信开发者工具中部署 validateRecord 云函数'
+          : '记录已保存，校验结果将在网络恢复后更新',
         showCancel: false
       });
 
@@ -768,14 +862,15 @@ Page({
 
     storage.clearClimbState();
 
+    const isTest = app.TEST_MODE;
     this.setData({
       state: 'IDLE',
       elapsed: 0,
       elapsedText: '00:00',
-      buttonEnabled: false,
-      buttonText: '等待定位',
-      geoStatus: 'far',
-      geoText: '定位中...'
+      buttonEnabled: isTest,
+      buttonText: isTest ? '开始攀登' : '等待定位',
+      geoStatus: isTest ? 'inside' : 'far',
+      geoText: isTest ? '测试模式 · 围栏已跳过' : '定位中...'
     });
 
     this._loadUserStats();

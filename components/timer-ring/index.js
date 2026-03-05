@@ -25,15 +25,15 @@ Component({
 
   lifetimes: {
     attached() {
-      // 计算实际像素尺寸
-      const systemInfo = wx.getSystemInfoSync();
-      const ratio = systemInfo.windowWidth / 750;
+      // 计算实际像素尺寸（使用新版 API）
+      const windowInfo = wx.getWindowInfo();
+      const ratio = windowInfo.windowWidth / 750;
       const sizePx = Math.round(this.properties.size * ratio);
       this.setData({
         canvasWidth: sizePx,
         canvasHeight: sizePx
       });
-      this.dpr = systemInfo.pixelRatio;
+      this.dpr = windowInfo.pixelRatio;
       this.sizePx = sizePx;
 
       // 初始化 Canvas

@@ -3,21 +3,17 @@
   布局：环境层 → 地理状态条 → 核心数据/计时圆环 → C位按钮 → 历史背书
 -->
 <view class="page">
-  <!-- 顶部安全区 -->
-  <view style="height: {{statusBarHeight}}px;"></view>
+  <!-- 顶部安全区（避开右上角胶囊按钮） -->
+  <view style="height: {{navBarTop}}px;"></view>
 
   <!-- 离线提示条 -->
   <view class="offline-bar" wx:if="{{isOffline}}">
     <text class="offline-text">网络已断开 · 数据将在联网后自动同步</text>
   </view>
 
-  <!-- 环境层：日期 + 天气 -->
+  <!-- 环境层：日期 -->
   <view class="ambient-bar">
     <text class="date-text">{{dateText}}</text>
-    <view class="weather-info">
-      <text class="weather-icon">{{weatherIcon}}</text>
-      <text class="weather-temp">{{temperature}}°</text>
-    </view>
   </view>
 
   <!-- 地理状态条组件 -->

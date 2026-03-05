@@ -7,7 +7,7 @@
 // 和风天气免费 API（需注册获取 key）
 // 免费版：每天 1000 次调用
 const API_BASE = 'https://devapi.qweather.com/v7/weather/now';
-const API_KEY = ''; // 待填入和风天气 API Key
+const API_KEY = 'f353dde9833647739a7560843ad3629e';
 
 const CACHE_KEY = 'weather_cache';
 const CACHE_DURATION = 30 * 60 * 1000; // 30 分钟

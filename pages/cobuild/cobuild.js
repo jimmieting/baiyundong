@@ -21,7 +21,10 @@ Page({
     feedbackContent: '',
     feedbackSubmitting: false,
 
-    statusBarHeight: 0
+    statusBarHeight: 0,
+
+    // 社群二维码
+    groupQRUrl: ''
   },
 
   onLoad() {
@@ -32,6 +35,7 @@ Page({
 
     this._loadCultureCards();
     this._loadBuilders();
+    this._loadGroupQR();
   },
 
   onShow() {
@@ -162,10 +166,54 @@ Page({
     }
   },
 
+  // ========== 社群入口 ==========
+
+  /**
+   * 预览群二维码
+   * 如果已配置云端群二维码图片，则预览；否则提示
+   */
+  previewGroupQR() {
+    const qrUrl = this.data.groupQRUrl;
+    if (qrUrl) {
+      wx.previewImage({
+        urls: [qrUrl],
+        current: qrUrl
+      });
+    } else {
+      wx.showModal({
+        title: '群二维码未配置',
+        content: '请运营者在 t_config 集合中添加 key 为 "group_qr_url" 的记录，value 填入群二维码图片的云存储地址。',
+        showCancel: false
+      });
+    }
+  },
+
+  /**
+   * 加载群二维码配置
+   */
+  async _loadGroupQR() {
+    try {
+      const db = wx.cloud.database();
+      const { data } = await network.withTimeout(
+        db.collection('t_config')
+          .where({ key: 'group_qr_url' })
+          .limit(1)
+          .get(),
+        CLOUD_TIMEOUT,
+        '加载群二维码'
+      );
+      if (data.length > 0 && data[0].value) {
+        this.setData({ groupQRUrl: data[0].value });
+      }
+    } catch (err) {
+      console.warn('群二维码加载失败', err);
+    }
+  },
+
   // ========== 精神共鸣 ==========
 
   voteSpirit() {
-    wx.showToast({ title: '感谢你的共鸣 ✨', icon: 'none' });
+    wx.showToast({ title: '感谢你的共鸣', icon: 'none' });
   },
 
   // ========== 捐助（待实现） ==========
